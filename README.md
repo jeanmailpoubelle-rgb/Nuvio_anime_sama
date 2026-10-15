@@ -1,0 +1,199 @@
+# Anime-Sama for Nuvio
+
+A standalone native Nuvio stream plugin **and** companion catalog addon, sharing
+one Anime-Sama provider and extractor layer. Ported from the owner's CloudStream
+Anime-Sama v6 implementation in `jeanmailpoubelle-rgb/cloudstream-source`.
+
+Nuvio's native plugin contract is `getStreams(tmdbId, mediaType, season, episode)`.
+It does not expose search, catalog, metadata or episode hooks. The companion addon
+supplies those features through Nuvio's supported Stremio protocol. Both integrations
+are implemented here; neither depends on a running CloudStream installation.
+
+## Install and run
+
+Node **22 or newer**:
+
+```sh
+npm ci
+npm run check
+npm start
+```
+
+Add these URLs in Nuvio, replacing `your-server` with the machine running this repo:
+
+| Nuvio setting | URL | Purpose |
+| --- | --- | --- |
+| Addons → Add addon | `http://your-server:3000/manifest.json` | Anime-Sama search, catalogs, metadata, seasons, episodes and streams |
+| Plugins → Add repository | `http://your-server:3000/plugin/manifest.json` | Native stream plugin for TMDB titles |
+
+For Anime-Sama browsing, install the **addon**. The native plugin is optional for
+resolving titles opened from other TMDB catalogs. Native plugins require a Nuvio
+build that supports plugins. The server must remain reachable for the addon; the
+native plugin executes on the device after downloading its bundle.
+
+The GitHub repository is private. Its raw files are therefore not an anonymous
+installation endpoint. Serve the included `/plugin/` routes or place the root
+`manifest.json` and `providers/anime-sama.js` on your own static hosting. No
+GitHub credentials belong in an installation URL. The root manifest is the
+**native plugin repository**; the server's `/manifest.json` is the **addon**.
+
+`PORT` and `HOST` optionally change the listening socket. Use an HTTPS reverse
+proxy for a remotely accessible installation. `/health` reports server readiness.
+A production `Dockerfile` is also included:
+
+```sh
+docker build -t nuvio-anime-sama .
+docker run --rm -p 3000:3000 nuvio-anime-sama
+```
+
+No content or media files are hosted by this repository.
+
+## Change the Anime-Sama domain
+
+Edit **one value** in [`config.json`](config.json):
+
+```json
+"animeSamaBaseUrl": "https://new-domain.example"
+```
+
+Restart the addon. Run `npm run build` and redistribute/refresh the native bundle
+if you changed its source default. The bundled copy is generated; never edit it
+by hand. There are no other source copies of the current Anime-Sama hostname.
+
+Without editing source, the addon accepts the `ANIME_SAMA_BASE_URL` environment
+variable and the native plugin offers **Adresse du site Anime-Sama** in its settings.
+Leave that setting empty to follow the bundled default. Each independently running
+integration can override the same configuration key; overrides are not synchronized
+between a device and the addon server.
+
+Title and episode IDs contain relative paths and array positions, never the site
+origin or signed playback URLs. Site requests, episode-script URLs, Referers and
+cache namespaces derive from the configured base. Host playback Referer/Origin
+intentionally refer to the actual host, not the Anime-Sama domain. External artwork
+CDNs retain their own published URLs. Domain A → B regression tests verify this.
+
+## Features and source behavior
+
+- Search and paginated anime/VF catalogs; latest episodes, additions, classics,
+  favorites and the Europe/Paris daily schedule.
+- Source titles, descriptions, genres, artwork, year and website-order groups.
+  Films, named film collections, OAVs, specials, Kai and continuous saga numbering
+  keep their source ordering. Single films are selectable named videos within the
+  source catalog's series cards, avoiding extra requests to classify every card.
+- VF, VOSTFR and published VF1/VF2/VQC paths. VF catalog entries lock the French
+  track; configuration can lock VOSTFR or VF globally. An unavailable track has an
+  empty playback ID and makes no network requests. Known missing episode slots
+  remain visible rather than shifting array positions or switching language.
+- ANSEmbed, Smoothpre/compatible JWPlayer, Vidmoly, Sendvid, VOE F7 and compatible
+  packed StreamWish pages. Unknown hosts can use the same safe generic player
+  parser. Closed `sibnet.ru` hosts remain excluded, exactly as in CloudStream v6.
+- Independent bounded extraction; failed/slow hosts cannot cancel healthy hosts.
+  Mirrors are fallback routes; duplicate URLs with identical version/headers are
+  removed. Different language or playback-header requirements remain distinct.
+- Actual HLS/DASH validation, playback Referer/Origin/User-Agent, source subtitle
+  tracks, and bounded Sendvid MP4 duration checks rejecting unavailable-video clips.
+
+## Stream speed and metadata
+
+An addon-selected episode stores its relative script path, language and zero-based
+array index. Playback resolves as:
+
+```text
+selected episode ID
+→ configured base + retained relative episodes.js path (fresh GET)
+→ published URLs at the exact array position
+→ up to four independent host extractors
+→ embed GET → parse/decode → validate HLS master + one healthy variant
+→ inherit metadata → deduplicate → playable streams
+```
+
+No search, title metadata or season-page reload occurs on that path. Older IDs
+without a retained script perform one season-page discovery request. Fresh episode
+data is coalesced across simultaneous callers; it is not reused as a signed-link
+cache. Canceling one caller does not cancel another caller's shared discovery.
+Metadata uses bounded LRU/TTL caches. Signed media URLs and host HTML are never
+cached by the provider, and HTTP stream responses use `Cache-Control: no-store`.
+
+The default budgets in `config.json` are 6 s per request, 8.5 s per host and 11 s
+for stream resolution. Once one host succeeds, the provider collects other results
+for up to 1.5 s, then cancels unfinished work. Thus a slower healthy host can be
+omitted on a particular run; increase `successGraceMs` to favor completeness.
+On current Nuvio, fetch ignores JS AbortSignal: timers still bound results and
+prevent new stages, while the app cancels native requests when it destroys that
+plugin runtime. Node/browser transports also abort their underlying requests.
+
+Stream objects expose `provider`, `quality`, `language`, `type`, `headers`, and
+real subtitle objects in Nuvio's supported fields. They additionally retain
+`source`, `version`, `audioLanguages`, `subtitleLanguages`, `codecs`, `videoRange`
+and available `qualities` for consumers that support them. Current Nuvio does not
+retain all those extra fields; its visible name includes the useful host, quality,
+version, codec and video-range summary. Masters with external audio/subtitle rendition groups stay intact. If the top
+rendition is denied, a validated lower video variant without external groups can
+be returned directly to avoid selecting that denied rendition again.
+
+Quality is the maximum **validated** rendition, visibly labelled `max · Auto`.
+Known source VF implies French audio; VOSTFR establishes French subtitle edition,
+**not Japanese audio**. Burned-in edition subtitles are not invented downloadable
+subtitle files. Unknown quality, audio, codec, HDR and subtitle tracks are omitted.
+See [actual sanitized examples and performance](docs/PERFORMANCE.md).
+
+## Native TMDB mapping
+
+The addon uses direct Anime-Sama identities and needs no TMDB API key. For native
+TMDB requests, the plugin uses Nuvio's injected `TMDB_API_KEY`; no key is bundled.
+Automatic matching requires an animation title, exact normalized title/alias,
+compatible year, the requested source `saisonN`, matching episode count and source
+numbering starting at 1. Ambiguous matches return no stream. Source saga ordering
+is not assumed to equal TMDB season ordering.
+
+For deterministic, faster native resolution, enter a **Correspondances TMDB (JSON)**
+setting. This path skips TMDB, search, details and season discovery entirely:
+
+```json
+{
+  "tv:95479": {
+    "seasons": {
+      "1": {
+        "path": "/catalogue/jujutsu-kaisen/saison1/",
+        "indexOffset": 0,
+        "languages": ["vostfr", "vf"]
+      }
+    }
+  },
+  "movie:372058": {
+    "group": "/catalogue/your-name/film/",
+    "index": 0,
+    "languages": ["vostfr", "vf"]
+  }
+}
+```
+
+For TV, array index = requested episode − 1 + `indexOffset`. For movies, `index`
+is zero-based. Paths identify groups **without** a trailing language. These are
+explicit source mappings, so verify their ordering when adding a saga or film.
+The included Jujutsu S1 binding was live tested; automatic TMDB matching was tested
+with deterministic responses, not a borrowed API key. Missing TMDB credentials
+require a mapping or the addon.
+
+## Development and verification
+
+```sh
+npm run check                 # build + lint + deterministic tests
+npm run test:live -- --output docs/LIVE-VERIFICATION.json
+npm audit --omit=dev
+```
+
+The live command performs real upstream HTTP requests and bounded media samples.
+It reports counts/timings/metadata without signed URLs or private state. Reports
+are evidence of HTTP access, not Android/iOS device playback. Tests execute the
+actual generated bundle in QuickJS with a pinned snapshot of Nuvio's runtime
+polyfills, including its constrained Cheerio bridge.
+
+- [Architecture, contracts and maintenance](docs/ARCHITECTURE.md)
+- [CloudStream reuse and pinned references](docs/REFERENCES.md)
+- [Performance, examples and known limitations](docs/PERFORMANCE.md)
+- [Sanitized live HTTP results](docs/LIVE-VERIFICATION.json)
+
+Source: [`src/`](src/). Generated installable artifact:
+[`providers/anime-sama.js`](providers/anime-sama.js). CI verifies it matches source.
+All implementation, fixtures, documentation and build files live in this repository.

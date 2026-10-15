@@ -1,0 +1,100 @@
+<html><meta property="og:image" content="https://raw.githubusercontent.com/Anime-Sama/IMG/img/contenu/jujutsu-kaisen.jpg">
+<meta name="description" content="Jujutsu Kaisen - Saison 1 | Anime-Sama - Streaming et catalogage d&apos;animes et scans.">
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-QK64GJ58E9');
+</script>
+<script>$(document).ready(function(){$("#avOeuvre").html("Saison 1");});</script>
+<script type="text/javascript">aclib.runBanner({zoneId: '8653010',});</script>
+<script type="text/javascript" src="episodes.js?filever=3606" defer></script>
+<script>
+	$(document).ready(function(){
+		//check si episode existe
+		if(typeof eps1 === 'undefined'){$('#msgErrorEp').show();$('#playerDF').hide();}
+		resetListe();
+		finirListe(1);
+		$('#avOeuvre').html();
+	});
+	</script>
+<script type="text/javascript">aclib.runBanner({zoneId: '8653014',});</script>
+<script type="text/javascript">aclib.runBanner({zoneId: '8653002',});</script>
+<script type="text/javascript">aclib.runBanner({zoneId: '8653006',});</script>
+<script>
+	(function () {
+		var HEURE_DEBUT = 3;
+		var HEURE_FIN   = 6;
+		var DUREE       = 10;   // secondes avant fermeture automatique
+
+		// Heure LOCALE du visiteur, selon les réglages de son appareil
+		var h = new Date().getHours();
+		if (h < HEURE_DEBUT || h >= HEURE_FIN) return;
+
+		// --- Bandeau ---
+		var b = document.getElementById('bandeau-pubs-nuit');
+		if (b && !sessionStorage.getItem('bpn-ferme')) {
+			b.hidden = false;
+
+			var compteur = b.querySelector('.bpn-compteur');
+			var restant  = DUREE;
+			var tic;
+
+			function fermer(memoriser) {
+				clearInterval(tic);
+				if (memoriser) sessionStorage.setItem('bpn-ferme', '1');
+				b.classList.add('bpn-sortie');
+				setTimeout(function () { b.remove(); }, 400);
+			}
+
+			function tick() {
+				restant--;
+				if (restant <= 0) { fermer(true); return; }
+				compteur.textContent = restant + 's';
+			}
+
+			compteur.textContent = restant + 's';
+			tic = setInterval(tick, 1000);
+
+			// Fermeture manuelle : mémorisée pour toute la session
+			b.querySelector('.bpn-fermer').addEventListener('click', function () {
+				fermer(true);
+			});
+
+			// On met en pause si le visiteur survole ou touche le bandeau
+			b.addEventListener('mouseenter', function () { clearInterval(tic); });
+			b.addEventListener('mouseleave', function () {
+				clearInterval(tic);
+				tic = setInterval(tick, 1000);
+			});
+		}
+
+		// --- Scripts pop, une seule fois, après le chargement complet ---
+		if (window.__popsCharges) return;
+		window.__popsCharges = true;
+
+		window.addEventListener('load', function () {
+			setTimeout(function () {
+				var s1 = document.createElement('script');
+				s1.dataset.zone = '11435645';
+				s1.src = 'https://llvpn.com/tag.min.js';
+				document.body.appendChild(s1);
+
+				/*var s1 = document.createElement('script');
+				s1.src = 'https://kingdomparlor.com/da/e2/6d/dae26dc95137e78aa26c2df53aeab9c2.js';
+				document.body.appendChild(s1);*/
+
+			}, 1500);
+		});
+	})();
+	</script>
+<script>
+		$(document).ready(function(){
+			/*
+			resetListe(); toujours au debut en premier
+			creerListe(debut, fin);newSP(special); on en met autant qu'on veut
+			creerListe(debut, fin);newSP(special); on en met autant qu'on veut
+			finirListe(debut de la fin);
+			*/
+		});
+		</script></html>

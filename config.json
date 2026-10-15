@@ -1,0 +1,12 @@
+{
+  "animeSamaBaseUrl": "https://anime-sama.to",
+  "requestTimeoutMs": 6000,
+  "hostTimeoutMs": 8500,
+  "resolutionTimeoutMs": 11000,
+  "extractorConcurrency": 4,
+  "metadataConcurrency": 4,
+  "metadataCacheMs": 120000,
+  "episodeCacheMs": 60000,
+  "version": "all",
+  "successGraceMs": 1500
+}

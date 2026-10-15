@@ -1,0 +1,18 @@
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  await Promise.all(Array.from({length:Math.min(limit,items.length)}, async () => {
+    while (next < items.length) { const i = next++; out[i] = await fn(items[i],i); }
+  }));
+  return out;
+}
+function abortError() { const e = new Error('Request canceled.'); e.code = 'ABORTED'; return e; }
+function deadline(ms, parent) {
+  const controller = new AbortController();
+  const cancel = () => controller.abort();
+  if (parent?.aborted) cancel();
+  else parent?.addEventListener('abort', cancel);
+  const timer = setTimeout(cancel,ms);
+  return {signal:controller.signal, cancel, close() { clearTimeout(timer); parent?.removeEventListener('abort',cancel); }};
+}
+module.exports = { mapLimit, deadline, abortError };
