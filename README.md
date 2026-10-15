@@ -9,33 +9,45 @@ It does not expose search, catalog, metadata or episode hooks. The companion add
 supplies those features through Nuvio's supported Stremio protocol. Both integrations
 are implemented here; neither depends on a running CloudStream installation.
 
-## Install and run
+## Install the native plugin
 
-Node **22 or newer**:
+1. Open **Nuvio → Settings → Plugins → Add repository**.
+2. Paste this manifest URL:
+
+   ```text
+   https://raw.githubusercontent.com/jeanmailpoubelle-rgb/Nuvio_anime_sama/main/manifest.json
+   ```
+
+3. Refresh the repository and enable **Anime-Sama**.
+
+The repository is public, so Nuvio can download the plugin directly from GitHub.
+The plugin runs locally on your device: no Node installation or personal server
+is required. Use a Nuvio build that supports native plugins.
+
+The native plugin resolves streams for titles opened from Nuvio's existing
+catalogs. To browse Anime-Sama's own search, catalogs and episode lists, use the
+optional companion addon below.
+
+## Run the companion catalog addon (optional)
+
+The addon requires a reachable server running Node **22 or newer**:
 
 ```sh
 npm ci
-npm run check
 npm start
 ```
 
-Add these URLs in Nuvio, replacing `your-server` with the machine running this repo:
+Under **Nuvio → Addons → Add addon**, add this URL, replacing `your-server` with
+the machine running the addon:
 
-| Nuvio setting | URL | Purpose |
-| --- | --- | --- |
-| Addons → Add addon | `http://your-server:3000/manifest.json` | Anime-Sama search, catalogs, metadata, seasons, episodes and streams |
-| Plugins → Add repository | `http://your-server:3000/plugin/manifest.json` | Native stream plugin for TMDB titles |
+```text
+http://your-server:3000/manifest.json
+```
 
-For Anime-Sama browsing, install the **addon**. The native plugin is optional for
-resolving titles opened from other TMDB catalogs. Native plugins require a Nuvio
-build that supports plugins. The server must remain reachable for the addon; the
-native plugin executes on the device after downloading its bundle.
-
-The GitHub repository is private. Its raw files are therefore not an anonymous
-installation endpoint. Serve the included `/plugin/` routes or place the root
-`manifest.json` and `providers/anime-sama.js` on your own static hosting. No
-GitHub credentials belong in an installation URL. The root manifest is the
-**native plugin repository**; the server's `/manifest.json` is the **addon**.
+The server must remain reachable for addon browsing and playback. The public
+GitHub manifest above belongs under **Plugins**; this server URL belongs under
+**Addons**. For local plugin development, the same server also serves the native
+repository at `/plugin/manifest.json`.
 
 `PORT` and `HOST` optionally change the listening socket. Use an HTTPS reverse
 proxy for a remotely accessible installation. `/health` reports server readiness.
@@ -50,21 +62,24 @@ No content or media files are hosted by this repository.
 
 ## Change the Anime-Sama domain
 
-Edit **one value** in [`config.json`](config.json):
+For the native plugin, open **Anime-Sama's plugin settings** in Nuvio and edit
+**Adresse du site Anime-Sama**. Save the new website home address; no source edit,
+rebuild or server is needed. Leave the field empty to follow the bundled default.
+
+For the companion addon, set the `ANIME_SAMA_BASE_URL` environment variable and
+restart the server. Device settings and addon server overrides are independent.
+
+To change the shared source default, edit **one value** in
+[`config.json`](config.json):
 
 ```json
 "animeSamaBaseUrl": "https://new-domain.example"
 ```
 
-Restart the addon. Run `npm run build` and redistribute/refresh the native bundle
-if you changed its source default. The bundled copy is generated; never edit it
-by hand. There are no other source copies of the current Anime-Sama hostname.
-
-Without editing source, the addon accepts the `ANIME_SAMA_BASE_URL` environment
-variable and the native plugin offers **Adresse du site Anime-Sama** in its settings.
-Leave that setting empty to follow the bundled default. Each independently running
-integration can override the same configuration key; overrides are not synchronized
-between a device and the addon server.
+After changing that source default, restart the addon and run `npm run build`
+before distributing the updated native bundle. The bundled copy is generated;
+never edit it by hand. There are no other source copies of the current Anime-Sama
+hostname.
 
 Title and episode IDs contain relative paths and array positions, never the site
 origin or signed playback URLs. Site requests, episode-script URLs, Referers and
