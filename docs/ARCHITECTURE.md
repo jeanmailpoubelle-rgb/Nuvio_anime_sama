@@ -37,8 +37,13 @@ The companion server's provider and caches persist for that server process.
 
 The native parser retains name/title, quality, language, provider, type, headers
 and subtitle objects `{url, language, name?, headers?}`. It ignores unknown metadata
-fields. The plugin therefore includes known codec/video-range details in its name
-as well as structured extension fields. Native headers become the app's playback
+fields. The main name prioritizes Anime-Sama, version and quality. Technical details
+live in `description` and structured extension fields. Nuvio 0.5.9/0.5.10 builds its
+smaller caption from quality, the free-text `size` slot and language, ignoring a
+native `description`. The native-only adapter supplies the technical description
+through that caption slot. It contains no invented byte count and does not replace
+quality/language. The shared stream and addon response do not set `size`; addon
+`description`/`title` provide the actual secondary text. Native headers become the app's playback
 request headers. No `Range` probe header is copied to playback.
 
 The app has a 60 s plugin-level timeout. Our stream resolver has its own shorter

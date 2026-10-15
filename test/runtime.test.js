@@ -52,7 +52,7 @@ test('fresh-install Nuvio Catalog resolution works without a key and waits for n
 test('Nuvio settings evaluate with the same module wrapper and publish a visible diagnostic toggle',async()=>{
   const result=await runNative({},[],{}, {settingsLayout:true});
   assert.equal(result.calls.length,0);
-  assert.ok(result.streams.some(f=>f.type==='info' && f.label.includes('1.0.2')));
+  assert.ok(result.streams.some(f=>f.type==='info' && f.label.includes('1.0.3')));
   assert.equal(result.streams.find(f=>f.key==='diagnostics').type,'toggle');
 });
 test('Ktor empty query/fragment markers do not reject a base URL, while actual URL components remain invalid',async()=>{

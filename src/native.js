@@ -2,6 +2,7 @@ const { AnimeSamaProvider } = require('./provider');
 const { defaults } = require('./config');
 const Id = require('./ids');
 const Catalog = require('./catalog-context');
+const {nativeStream} = require('./streams');
 const {version:pluginVersion} = require('../package.json');
 function clean(value) { return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
 function failure(code) { return Object.assign(new Error(code),{code}); }
@@ -129,7 +130,7 @@ async function getStreams(tmdbId,mediaType,season,episode) {
     const settings = typeof SCRAPER_SETTINGS === 'undefined' ? {} : SCRAPER_SETTINGS;
     console.info('[Anime-Sama]',pluginVersion,'getStreams',Catalog.nativeId(tmdbId) || 'source/unsupported ID',mediaType,season,episode);
     const provider = nativeProvider(settings);
-    if (String(tmdbId).startsWith('as:ep:')) return (await provider.streams(tmdbId)).streams;
+    if (String(tmdbId).startsWith('as:ep:')) return (await provider.streams(tmdbId)).streams.map(nativeStream);
     const id = Catalog.nativeId(tmdbId), type = ['tv','series','show','anime'].includes(mediaType) ? 'tv' : mediaType;
     if (!id || !['tv','movie'].includes(type)) {
       diagnostic(settings,'unsupported catalog ID',{prefix:String(tmdbId).split(':')[0],mediaType});
@@ -139,7 +140,7 @@ async function getStreams(tmdbId,mediaType,season,episode) {
     if (type === 'tv' && (!Number.isInteger(season) || season < 1 || !Number.isInteger(episode) || episode < 1)) return [];
     const key = typeof TMDB_API_KEY === 'string' ? TMDB_API_KEY.trim() : '';
     const refs = await resolveSelection(provider,id,type,season,episode,settings,key);
-    return refs.length ? (await provider.streams(Id.encodeEpisode(refs),{reuseDiscovery:true})).streams : [];
+    return refs.length ? (await provider.streams(Id.encodeEpisode(refs),{reuseDiscovery:true})).streams.map(nativeStream) : [];
   } catch (error) { console.warn('[Anime-Sama]',error.code || (error.status ? `HTTP ${error.status}` : 'Source unavailable.')); return []; }
 }
 function onSettings() {

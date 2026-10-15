@@ -1079,14 +1079,15 @@ var require_streams = __commonJS({
   "src/streams.js"(exports2, module2) {
     function streamObject(media) {
       var _a, _b, _c, _d;
-      const bits = ["Anime-Sama", media.source];
-      if (media.quality) bits.push(media.adaptive ? `${media.quality} max · Auto` : media.quality);
-      bits.push(media.version);
+      const bits = ["Anime-Sama", media.version, media.quality].filter(Boolean);
       const codecs = (_a = media.codecs) == null ? void 0 : _a.join(", ");
-      const title = [...bits, ...codecs ? [codecs] : [], ...media.videoRange ? [media.videoRange] : []].join(" • ");
+      const title = bits.join(" • ");
+      const format = { hls: "HLS", dash: "DASH", video: "Vidéo" }[media.type];
+      const description = [media.source, format, media.adaptive ? "Auto (qualité max)" : null, codecs, media.videoRange].filter(Boolean).join(" • ");
       return {
         name: title,
         title,
+        description,
         url: media.url,
         provider: media.source,
         source: media.source,
@@ -1104,6 +1105,9 @@ var require_streams = __commonJS({
         ...((_d = media.subtitles) == null ? void 0 : _d.length) ? { subtitles: media.subtitles } : {}
       };
     }
+    function nativeStream2(stream) {
+      return { ...stream, ...stream.description ? { size: stream.description } : {} };
+    }
     function deduplicate(streams) {
       const seen = /* @__PURE__ */ new Set();
       return streams.filter((s) => {
@@ -1114,13 +1118,13 @@ var require_streams = __commonJS({
       });
     }
     function addonStream(stream) {
-      return { ...stream, behaviorHints: {
+      return { ...stream, title: stream.description, behaviorHints: {
         notWebReady: true,
         bingeGroup: `anime-sama:${stream.version}:${stream.source}`,
         proxyHeaders: { request: stream.headers }
       } };
     }
-    module2.exports = { streamObject, deduplicate, addonStream };
+    module2.exports = { streamObject, nativeStream: nativeStream2, deduplicate, addonStream };
   }
 });
 
@@ -1560,7 +1564,7 @@ var require_package = __commonJS({
   "package.json"(exports2, module2) {
     module2.exports = {
       name: "nuvio-anime-sama",
-      version: "1.0.2",
+      version: "1.0.3",
       private: true,
       description: "Anime-Sama native Nuvio stream plugin and catalog addon",
       license: "GPL-3.0-or-later",
@@ -1595,6 +1599,7 @@ var { AnimeSamaProvider } = require_provider();
 var { defaults } = require_config2();
 var Id = require_ids();
 var Catalog = require_catalog_context();
+var { nativeStream } = require_streams();
 var { version: pluginVersion } = require_package();
 function clean(value) {
   return String(value || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -1752,7 +1757,7 @@ function getStreams(tmdbId, mediaType, season, episode) {
       const settings = typeof SCRAPER_SETTINGS === "undefined" ? {} : SCRAPER_SETTINGS;
       console.info("[Anime-Sama]", pluginVersion, "getStreams", Catalog.nativeId(tmdbId) || "source/unsupported ID", mediaType, season, episode);
       const provider = nativeProvider(settings);
-      if (String(tmdbId).startsWith("as:ep:")) return (yield provider.streams(tmdbId)).streams;
+      if (String(tmdbId).startsWith("as:ep:")) return (yield provider.streams(tmdbId)).streams.map(nativeStream);
       const id = Catalog.nativeId(tmdbId), type = ["tv", "series", "show", "anime"].includes(mediaType) ? "tv" : mediaType;
       if (!id || !["tv", "movie"].includes(type)) {
         diagnostic(settings, "unsupported catalog ID", { prefix: String(tmdbId).split(":")[0], mediaType });
@@ -1763,7 +1768,7 @@ function getStreams(tmdbId, mediaType, season, episode) {
       if (type === "tv" && (!Number.isInteger(season) || season < 1 || !Number.isInteger(episode) || episode < 1)) return [];
       const key = typeof TMDB_API_KEY === "string" ? TMDB_API_KEY.trim() : "";
       const refs = yield resolveSelection(provider, id, type, season, episode, settings, key);
-      return refs.length ? (yield provider.streams(Id.encodeEpisode(refs), { reuseDiscovery: true })).streams : [];
+      return refs.length ? (yield provider.streams(Id.encodeEpisode(refs), { reuseDiscovery: true })).streams.map(nativeStream) : [];
     } catch (error) {
       console.warn("[Anime-Sama]", error.code || (error.status ? `HTTP ${error.status}` : "Source unavailable."));
       return [];

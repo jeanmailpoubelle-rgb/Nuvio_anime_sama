@@ -118,8 +118,13 @@ Sanitized examples from those responses (URLs intentionally not persisted):
 | Voe HLS | 720p max / adaptive | VF | French | Unknown | avc1.64001f, mp4a.40.2 | SDR |
 | Voe direct video | Unknown | VOSTFR | Unknown | French | Unknown | Unknown |
 
-Example visible name:
-`Anime-Sama • ANSEmbed • 1080p max · Auto • VOSTFR • avc1.640028, mp4a.40.2 • SDR`.
+From version 1.0.3, the visible heading is:
+`Anime-Sama • VOSTFR • 1080p`.
+The smaller technical description is:
+`ANSEmbed • HLS • Auto (qualité max) • avc1.640028, mp4a.40.2 • SDR`.
+Native Nuvio also adds its structured quality/version fields to that caption.
+Earlier verification reports retain the longer names actually returned by those
+older builds; the underlying quality and language metadata is unchanged.
 
 Unknown fields are absent from the actual stream object (null in the sanitized
 report). `subtitleLanguages: ["fr"]` describes the source VOSTFR edition; it does

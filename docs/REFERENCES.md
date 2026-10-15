@@ -143,3 +143,14 @@ and https://catalog.nuvio.tv/meta/series/tt0388629.json returned the same One Pi
 identity and episode list. Both now share a single keyless metadata path. Episode
 entries come from that response; source group ranges and language slots still come
 from the authoritative Anime-Sama parser.
+
+## Stream display follow-up (1.0.3)
+
+`StreamFetchSupport.kt: PluginRuntimeResult.toStreamItem` confirms that native
+heading text uses `name`, while the smaller caption joins `quality`, `size` and
+`language`. Native `description` is not parsed. The native-only adapter uses that
+string caption slot for host/format/adaptive/codec/range text while preserving
+the original structured quality and language. No media size is inferred. The
+shared provider and addon keep this text in `description`; addon `title` mirrors
+it for compatible Stremio clients. NuvioTV's `buildDescription` similarly retains
+the string caption slot and language.

@@ -140,13 +140,17 @@ plugin runtime. Node/browser transports also abort their underlying requests.
 Stream objects expose `provider`, `quality`, `language`, `type`, `headers`, and
 real subtitle objects in Nuvio's supported fields. They additionally retain
 `source`, `version`, `audioLanguages`, `subtitleLanguages`, `codecs`, `videoRange`
-and available `qualities` for consumers that support them. Current Nuvio does not
-retain all those extra fields; its visible name includes the useful host, quality,
-version, codec and video-range summary. Masters with external audio/subtitle rendition groups stay intact. If the top
+and available `qualities` for consumers that support them. The main line is short:
+**Anime-Sama • VF • 1080p** or **Anime-Sama • VOSTFR • 720p**. Host, stream type,
+adaptive status, codecs and video range appear in the smaller secondary text.
+The native adapter uses Nuvio's string-valued caption slot for these details;
+quality/language remain intact and no file size is invented. Addon responses use
+their actual `description`/`title` fields. Masters with external audio/subtitle rendition groups stay intact. If the top
 rendition is denied, a validated lower video variant without external groups can
 be returned directly to avoid selecting that denied rendition again.
 
-Quality is the maximum **validated** rendition, visibly labelled `max · Auto`.
+Quality is the maximum **validated** rendition; the secondary text labels adaptive
+streams `Auto (qualité max)`.
 Known source VF implies French audio; VOSTFR establishes French subtitle edition,
 **not Japanese audio**. Burned-in edition subtitles are not invented downloadable
 subtitle files. Unknown quality, audio, codec, HDR and subtitle tracks are omitted.
@@ -154,7 +158,7 @@ See [actual sanitized examples and performance](docs/PERFORMANCE.md).
 
 ## Native catalog matching
 
-Version **1.0.2** accepts TMDB, IMDb and Kitsu anime-catalog IDs, including episode
+The native plugin accepts TMDB, IMDb and Kitsu anime-catalog IDs, including episode
 suffixes. No manual mapping or hosted addon is required for ordinary catalog use.
 TMDB/IMDb identities use the public [Nuvio Catalog](https://catalog.nuvio.tv/configure)
 metadata endpoint, supplying title and season episodes together in one request.
@@ -169,7 +173,7 @@ Missing versions remain unavailable, and ambiguous groups still fail safely.
 Complex season splits can use an explicit mapping below.
 
 After upgrading, open **Settings → Plugins**, refresh this repository and confirm
-**Anime-Sama 1.0.2** is enabled, then reopen the episode. Repository tabs on the
+**Anime-Sama 1.0.3** is enabled, then reopen the episode. Repository tabs on the
 stream screen only appear when that repository returns streams. If links remain
 missing, enable **Diagnostic** in Anime-Sama's plugin settings to log the catalog ID,
 matching stages and failure codes without signed links or credentials.
