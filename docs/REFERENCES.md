@@ -154,3 +154,30 @@ the original structured quality and language. No media size is inferred. The
 shared provider and addon keep this text in `description`; addon `title` mirrors
 it for compatible Stremio clients. NuvioTV's `buildDescription` similarly retains
 the string caption slot and language.
+
+## Timerless Android TV follow-up (1.0.4)
+
+NuvioMedia/NuvioTV release **1.0.0**, commit
+`9f17e8bf4abc799dc8c832d2894a8b3b166e4353`, registers synchronous `__native_fetch` and no
+JS timer/sleep host functions in `app/src/full/java/com/nuvio/tv/core/plugin/PluginRuntime.kt`.
+Its dependencies pin QuickJS 1.0.5 and Jsoup 1.17.2. Earlier coverage checked only
+the synchronous fetch return shape, missing the absent timers in the full runtime.
+
+`test/fixtures/nuvio-tv-polyfills.txt` is the complete `getStaticPolyfillCode()`
+snapshot from that release with runtime key getters, not credentials. Its native
+HTTP bridge reads four arguments, returns decoded text without `bodyBase64`, and
+maps unknown methods (including HEAD) to GET. The TV JVM
+profile generates bindings from the exact URL/DOM registration blocks and call
+wrapper in the pinned source; `test/native-jvm/dependencies-tv.json` records every
+download's SHA-256. Android-specific HTTP/crypto startup is replaced with the
+proxy-aware synchronous HTTP handoff reproducing those legacy limitations; the
+plugin does not use CryptoJS. Binary-dependent validation stays unavailable on
+that release, with a specific failure code and no unsafe text-to-binary guess.
+
+`test/fixtures/nuvio-tv-modern-polyfills.txt` retains the previously inspected
+`4fe12b3f14939101b8988c5961dbdc862072c5fa` (`1.1.0-beta.6`) timerless snapshot with
+its six-argument binary-capable bridge. Deterministic tests cover both TV shapes
+alongside the phone runtime; the live TV report targets the user's 1.0.0 release.
+
+Compatibility findings refer to this identified runtime source snapshot; they do
+not establish playback on an uninspected installed APK or physical Android TV.

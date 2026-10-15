@@ -1,0 +1,76 @@
+{
+  "nuvioTag": "1.0.0",
+  "nuvioCommit": "9f17e8bf4abc799dc8c832d2894a8b3b166e4353",
+  "files": [
+    {
+      "name": "kotlin-compiler-embeddable-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.4.10/kotlin-compiler-embeddable-2.4.10.jar",
+      "sha256": "9309638a2ee03e6bde9ef4b7444055a94b84ab906563675d71ff9aecb64da913"
+    },
+    {
+      "name": "kotlin-build-tools-api-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/2.4.10/kotlin-build-tools-api-2.4.10.jar",
+      "sha256": "3953d283e7710c990672e403a87df393d9726a9bf3e172194ebb5c33e062fcb0"
+    },
+    {
+      "name": "kotlin-stdlib-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.10/kotlin-stdlib-2.4.10.jar",
+      "sha256": "4ec0293bc3751423b203f1d8493251c57c42e73eb6377a6b8560d0974ff0a6df"
+    },
+    {
+      "name": "kotlin-script-runtime-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-script-runtime/2.4.10/kotlin-script-runtime-2.4.10.jar",
+      "sha256": "f4a5b30c2fdfbe386b097101b7989dbeea3743c06396136664784e08e15c6899"
+    },
+    {
+      "name": "kotlin-reflect-1.6.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.6.10/kotlin-reflect-1.6.10.jar",
+      "sha256": "3277ac102ae17aad10a55abec75ff5696c8d109790396434b496e75087854203"
+    },
+    {
+      "name": "kotlin-daemon-embeddable-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/2.4.10/kotlin-daemon-embeddable-2.4.10.jar",
+      "sha256": "547d969a2eab602fe0bdfd9fcb1b563a5c6d30099d3351394d6427eba8288467"
+    },
+    {
+      "name": "kotlinx-coroutines-core-jvm-1.11.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.11.0/kotlinx-coroutines-core-jvm-1.11.0.jar",
+      "sha256": "d1d75aa01dffbb4d1c520e67e4c4e7f5f6174718e7cb4632412503f2f0e604fa"
+    },
+    {
+      "name": "annotations-26.0.2.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/26.0.2/annotations-26.0.2.jar",
+      "sha256": "2037be378980d3ba9333e97955f3b2cde392aa124d04ca73ce2eee6657199297"
+    },
+    {
+      "name": "kotlinx-serialization-json-jvm-1.10.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.10.0/kotlinx-serialization-json-jvm-1.10.0.jar",
+      "sha256": "af1e3e1e8ee3176468e1ec729df853b2066071de94a84c412ad9fa135cb37f3a"
+    },
+    {
+      "name": "kotlinx-serialization-core-jvm-1.10.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.10.0/kotlinx-serialization-core-jvm-1.10.0.jar",
+      "sha256": "14d6f27ce28f61ebc4a516d562f911b7bc01cfbe5397fb884c45ea0db044c635"
+    },
+    {
+      "name": "quickjs-kt-jvm-1.0.5.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/github/dokar3/quickjs-kt-jvm/1.0.5/quickjs-kt-jvm-1.0.5.jar",
+      "sha256": "c9d082b99e9c8d0095f121ca96112ee94d6007fabaf291dbf3703de005a57b03"
+    },
+    {
+      "name": "jsoup-1.17.2.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jsoup/jsoup/1.17.2/jsoup-1.17.2.jar",
+      "sha256": "f60b33b38e9d7ac93eaaa68a6c70f706bb99036494b2e2add2bfee11d09ac6f5"
+    },
+    {
+      "name": "gson-2.10.1.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar",
+      "sha256": "4241c14a7727c34feea6507ec801318a3d4a90f070e4525681079fb94ee4c593"
+    },
+    {
+      "name": "PluginRuntimeTv.kt",
+      "url": "https://raw.githubusercontent.com/NuvioMedia/NuvioTV/9f17e8bf4abc799dc8c832d2894a8b3b166e4353/app/src/full/java/com/nuvio/tv/core/plugin/PluginRuntime.kt",
+      "sha256": "a2ba5b91a2c8f244fbf0d278dcd18d1a8eaa5758e8db67003b3dbbd8997cd417"
+    }
+  ]
+}

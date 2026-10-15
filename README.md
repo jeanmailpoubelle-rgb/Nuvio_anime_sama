@@ -28,6 +28,25 @@ The native plugin resolves streams for titles opened from Nuvio's existing
 catalogs. To browse Anime-Sama's own search, catalogs and episode lists, use the
 optional companion addon below.
 
+### Android TV
+
+Refresh the plugin repository on the TV itself and enable **Anime-Sama 1.0.4**.
+Plugin versions/settings on the phone and TV can differ. Version 1.0.4 supports
+NuvioTV **1.0.0**, which provides synchronous HTTP but no JavaScript timers; earlier
+plugin versions returned no streams in that runtime. Newer binary-capable TV
+runtime polyfills are also covered by deterministic tests.
+
+On those timerless TV builds, request/host deadlines are checked between network
+stages. Hosts are resolved one at a time in priority order, completing a preferred
+host's validation before lower-priority hosts start. A blocking native HTTP call still
+depends on NuvioTV's own network timeout; JavaScript cannot interrupt it. Phone
+builds retain concurrent host extraction and their existing asynchronous timers.
+NuvioTV 1.0.0 exposes only decoded text responses. HLS extraction works; hosts that
+require binary validation, including Sendvid's MP4 placeholder check, remain
+unavailable on that app version. The plugin does not reconstruct corrupt binary
+data from decoded text or skip the unavailable-video check. Header-only video
+probes use a one-byte range because that release converts HEAD to GET.
+
 ## Run the companion catalog addon (optional)
 
 The addon requires a reachable server running Node **22 or newer**:
@@ -133,7 +152,7 @@ The default budgets in `config.json` are 6 s per request, 8.5 s per host and 11 
 for stream resolution. Once one host succeeds, the provider collects other results
 for up to 1.5 s, then cancels unfinished work. Thus a slower healthy host can be
 omitted on a particular run; increase `successGraceMs` to favor completeness.
-On current Nuvio, fetch ignores JS AbortSignal: timers still bound results and
+On mobile Nuvio, fetch ignores JS AbortSignal: timers still bound results and
 prevent new stages, while the app cancels native requests when it destroys that
 plugin runtime. Node/browser transports also abort their underlying requests.
 
@@ -173,7 +192,7 @@ Missing versions remain unavailable, and ambiguous groups still fail safely.
 Complex season splits can use an explicit mapping below.
 
 After upgrading, open **Settings → Plugins**, refresh this repository and confirm
-**Anime-Sama 1.0.3** is enabled, then reopen the episode. Repository tabs on the
+**Anime-Sama 1.0.4** is enabled, then reopen the episode. Repository tabs on the
 stream screen only appear when that repository returns streams. If links remain
 missing, enable **Diagnostic** in Anime-Sama's plugin settings to log the catalog ID,
 matching stages and failure codes without signed links or credentials.
@@ -226,7 +245,8 @@ and no injected key in QuickJS with the Nuvio 0.5.9-compatible bridge.
 npm run check                 # build + lint + deterministic tests
 npm run test:live -- --output docs/LIVE-VERIFICATION.json
 npm run test:native:live -- --output docs/NATIVE-VERIFICATION-1.0.2.json
-npm run test:native:jvm -- --output docs/NATIVE-JVM-VERIFICATION-1.0.2.json
+npm run test:native:jvm -- --output docs/NATIVE-MOBILE-VERIFICATION-1.0.4.json
+npm run test:native:jvm -- --runtime tv --output docs/NATIVE-TV-VERIFICATION-1.0.4.json
 npm audit --omit=dev
 ```
 
@@ -247,6 +267,8 @@ polyfills, including its constrained Cheerio bridge.
 - [Sanitized live HTTP results](docs/LIVE-VERIFICATION.json)
 - [Current native JVM verification](docs/NATIVE-JVM-VERIFICATION-1.0.2.json)
 - [Reproduced 1.0.1 startup failure](docs/NATIVE-JVM-REGRESSION-1.0.1.json)
+- [Android TV native verification](docs/NATIVE-TV-VERIFICATION-1.0.4.json)
+- [Phone native regression check](docs/NATIVE-MOBILE-VERIFICATION-1.0.4.json)
 
 Source: [`src/`](src/). Generated installable artifact:
 [`providers/anime-sama.js`](providers/anime-sama.js). CI verifies it matches source.

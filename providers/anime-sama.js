@@ -108,21 +108,41 @@ var require_timers = __commonJS({
         }
       };
     }
-    var timers = typeof __plugin_sleep === "function" ? pollingTimers() : { setTimer: (fn, ms) => setTimeout(fn, ms), clearTimer: (id) => clearTimeout(id) };
-    module2.exports = { ...timers, pollingTimers };
+    function cooperativeTimers(now = Date.now) {
+      const pending = /* @__PURE__ */ new Map();
+      let serial = 0;
+      return {
+        setTimer(callback, ms) {
+          const id = ++serial;
+          pending.set(id, { callback, at: now() + Math.max(0, ms) });
+          return id;
+        },
+        clearTimer(id) {
+          pending.delete(id);
+        },
+        flushTimers() {
+          for (const [id, task] of [...pending]) if (task.at <= now() && pending.delete(id)) task.callback();
+        }
+      };
+    }
+    var timerless = typeof setTimeout !== "function" || typeof clearTimeout !== "function";
+    var timers = timerless ? cooperativeTimers() : typeof __plugin_sleep === "function" ? pollingTimers() : { setTimer: (fn, ms) => setTimeout(fn, ms), clearTimer: (id) => clearTimeout(id) };
+    module2.exports = { ...timers, flushTimers: timers.flushTimers || (() => {
+    }), timerless, pollingTimers, cooperativeTimers };
   }
 });
 
 // src/concurrency.js
 var require_concurrency = __commonJS({
   "src/concurrency.js"(exports2, module2) {
-    var { setTimer, clearTimer } = require_timers();
+    var { setTimer, clearTimer, flushTimers } = require_timers();
     function mapLimit(items, limit, fn) {
       return __async(this, null, function* () {
         const out = new Array(items.length);
         let next = 0;
         yield Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => __async(null, null, function* () {
           while (next < items.length) {
+            flushTimers();
             const i = next++;
             out[i] = yield fn(items[i], i);
           }
@@ -210,9 +230,16 @@ var require_cache = __commonJS({
 // src/runtime-fetch.js
 var require_runtime_fetch = __commonJS({
   "src/runtime-fetch.js"(exports2, module2) {
-    function nativeFetch(call, url, options = {}) {
-      return Promise.resolve(call(url, (options.method || "GET").toUpperCase(), JSON.stringify(options.headers || {}), "none", "", true)).then((raw) => {
+    function nativeFetch(call, url, options = {}, transport = {}) {
+      let method = (options.method || "GET").toUpperCase();
+      const requestHeaders = { ...options.headers };
+      if (transport.textOnly && method === "HEAD") {
+        method = "GET";
+        requestHeaders.Range = requestHeaders.Range || "bytes=0-0";
+      }
+      return Promise.resolve(call(url, method, JSON.stringify(requestHeaders), "none", "", true)).then((raw) => {
         const data = JSON.parse(raw), headers = {};
+        if (data.ok) transport.textOnly = typeof data.bodyBase64 !== "string";
         for (const [key, value] of Object.entries(data.headers || {})) headers[key.toLowerCase()] = value;
         return {
           ok: data.ok,
@@ -221,6 +248,7 @@ var require_runtime_fetch = __commonJS({
           headers: { get: (name) => headers[name.toLowerCase()] || null },
           text: () => Promise.resolve(data.body || ""),
           arrayBuffer: (maxBytes) => {
+            if (typeof data.bodyBase64 !== "string") throw Object.assign(new Error("Native runtime has no binary response support."), { code: "BINARY_UNAVAILABLE" });
             const encoded = data.bodyBase64 || "";
             const bounded = Number.isFinite(maxBytes) ? encoded.slice(0, Math.ceil(maxBytes / 3) * 4) : encoded;
             const binary = atob(bounded), bytes = new Uint8Array(Number.isFinite(maxBytes) ? Math.min(binary.length, maxBytes) : binary.length);
@@ -231,7 +259,8 @@ var require_runtime_fetch = __commonJS({
       });
     }
     function runtimeFetch(fallback) {
-      return typeof __native_fetch === "function" ? (url, options) => nativeFetch(__native_fetch, url, options) : fallback;
+      const transport = {};
+      return typeof __native_fetch === "function" ? (url, options) => nativeFetch(__native_fetch, url, options, transport) : fallback;
     }
     module2.exports = { nativeFetch, runtimeFetch };
   }
@@ -242,7 +271,7 @@ var require_http = __commonJS({
   "src/http.js"(exports2, module2) {
     var { abortError } = require_concurrency();
     var { runtimeFetch } = require_runtime_fetch();
-    var { setTimer, clearTimer } = require_timers();
+    var { setTimer, clearTimer, flushTimers } = require_timers();
     var USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
     var HttpError = class extends Error {
       constructor(status) {
@@ -258,6 +287,7 @@ var require_http = __commonJS({
       request(_0) {
         return __async(this, arguments, function* (url, options = {}, metrics) {
           var _a, _b;
+          flushTimers();
           if ((_a = options.signal) == null ? void 0 : _a.aborted) throw abortError();
           const controller = new AbortController();
           let timer, listener;
@@ -268,9 +298,18 @@ var require_http = __commonJS({
             metrics.requestCategories[category] = (metrics.requestCategories[category] || 0) + 1;
           }
           const limit = options.maxBytes || 4e6;
+          const cancellation = () => {
+            var _a2;
+            return ((_a2 = options.signal) == null ? void 0 : _a2.aborted) ? abortError() : Object.assign(new Error("Request timed out."), { code: "TIMEOUT" });
+          };
+          const checkpoint = () => {
+            flushTimers();
+            if (controller.signal.aborted) throw cancellation();
+          };
           const job = () => __async(this, null, function* () {
             var _a2;
             const response = yield this.fetch(url, { method: options.method || "GET", headers: { "User-Agent": USER_AGENT, ...options.headers }, signal: controller.signal });
+            checkpoint();
             if (!response.ok) throw new HttpError(response.status);
             let body;
             if (options.method === "HEAD") body = "";
@@ -302,15 +341,15 @@ var require_http = __commonJS({
               if (body.length > limit && !options.prefix) throw new Error("Response too large.");
               body = body.slice(0, limit);
             }
+            checkpoint();
             if (!options.binary && options.method !== "HEAD" && /cf-chl-|<title>Just a moment/i.test(body)) throw new Error("Browser verification required.");
             return { body, url: response.url || url, status: response.status, headers: response.headers };
           });
           const stopped = new Promise((_resolve, reject) => {
             var _a2;
             const stop = () => {
-              var _a3;
               controller.abort();
-              reject(((_a3 = options.signal) == null ? void 0 : _a3.aborted) ? abortError() : Object.assign(new Error("Request timed out."), { code: "TIMEOUT" }));
+              reject(cancellation());
             };
             timer = setTimer(stop, options.timeoutMs || this.config.requestTimeoutMs);
             listener = stop;
@@ -1136,7 +1175,7 @@ var require_provider = __commonJS({
     var { HttpClient } = require_http();
     var { Dispatcher } = require_dispatcher();
     var { mapLimit, deadline } = require_concurrency();
-    var { setTimer, clearTimer } = require_timers();
+    var { setTimer, clearTimer, timerless } = require_timers();
     var Pages = require_pages();
     var Id2 = require_ids();
     var U = require_url();
@@ -1312,7 +1351,7 @@ var require_provider = __commonJS({
             const ready = new Promise((resolve) => {
               signalReady = resolve;
             });
-            const work = mapLimit(players, this.config.extractorConcurrency, (_02) => __async(this, [_02], function* ({ embed, ref }) {
+            const work = mapLimit(players, timerless ? 1 : this.config.extractorConcurrency, (_02) => __async(this, [_02], function* ({ embed, ref }) {
               if (scope.signal.aborted) return;
               const media = yield this.dispatcher.extract(embed, this.base + ref.path, ref.language, metrics, scope.signal);
               if (media.length) {
@@ -1564,7 +1603,7 @@ var require_package = __commonJS({
   "package.json"(exports2, module2) {
     module2.exports = {
       name: "nuvio-anime-sama",
-      version: "1.0.3",
+      version: "1.0.4",
       private: true,
       description: "Anime-Sama native Nuvio stream plugin and catalog addon",
       license: "GPL-3.0-or-later",

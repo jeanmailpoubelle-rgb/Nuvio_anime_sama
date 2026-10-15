@@ -1,11 +1,12 @@
 const { abortError } = require('./concurrency');
 const {runtimeFetch} = require('./runtime-fetch');
-const {setTimer,clearTimer} = require('./timers');
+const {setTimer,clearTimer,flushTimers} = require('./timers');
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 class HttpError extends Error { constructor(status) { super(`HTTP ${status}`); this.status = status; } }
 class HttpClient {
   constructor(config, fetchImpl = fetch) { this.config = config; this.fetch = fetchImpl === fetch ? runtimeFetch(fetchImpl) : fetchImpl; }
   async request(url, options = {}, metrics) {
+    flushTimers();
     if (options.signal?.aborted) throw abortError();
     const controller = new AbortController();
     let timer, listener;
@@ -13,8 +14,11 @@ class HttpClient {
     const category = options.category || 'site';
     if (metrics) { metrics.requests++; metrics.requestCategories[category] = (metrics.requestCategories[category] || 0) + 1; }
     const limit = options.maxBytes || 4000000;
+    const cancellation = () => options.signal?.aborted ? abortError() : Object.assign(new Error('Request timed out.'),{code:'TIMEOUT'});
+    const checkpoint = () => { flushTimers();if (controller.signal.aborted) throw cancellation(); };
     const job = async () => {
       const response = await this.fetch(url, {method:options.method || 'GET', headers:{'User-Agent':USER_AGENT,...options.headers}, signal:controller.signal});
+      checkpoint();
       if (!response.ok) throw new HttpError(response.status);
       let body;
       if (options.method === 'HEAD') body = '';
@@ -40,13 +44,14 @@ class HttpClient {
         if (body.length > limit && !options.prefix) throw new Error('Response too large.');
         body = body.slice(0,limit);
       }
+      checkpoint();
       if (!options.binary && options.method !== 'HEAD' && /cf-chl-|<title>Just a moment/i.test(body)) throw new Error('Browser verification required.');
       return {body, url:response.url || url, status:response.status, headers:response.headers};
     };
     // Nuvio's fetch shim currently ignores AbortSignal. Racing here still bounds
     // the returned result; Node/browser transports additionally cancel the request.
     const stopped = new Promise((_resolve,reject) => {
-      const stop = () => { controller.abort(); reject(options.signal?.aborted ? abortError() : Object.assign(new Error('Request timed out.'),{code:'TIMEOUT'})); };
+      const stop = () => { controller.abort(); reject(cancellation()); };
       timer = setTimer(stop,options.timeoutMs || this.config.requestTimeoutMs);
       listener = stop;
       options.signal?.addEventListener('abort',listener);

@@ -3,7 +3,7 @@ const { Cache } = require('./cache');
 const { HttpClient } = require('./http');
 const { Dispatcher } = require('./extractors/dispatcher');
 const { mapLimit, deadline } = require('./concurrency');
-const {setTimer,clearTimer} = require('./timers');
+const {setTimer,clearTimer,timerless} = require('./timers');
 const Pages = require('./pages');
 const Id = require('./ids');
 const U = require('./url');
@@ -142,7 +142,9 @@ class AnimeSamaProvider {
       const collected = [];
       let graceTimer, signalReady;
       const ready = new Promise(resolve => { signalReady = resolve; });
-      const work = mapLimit(players,this.config.extractorConcurrency,async ({embed,ref}) => {
+      // TV's native fetch blocks the JS thread. Finish one preferred host before
+      // starting another, so a dead host cannot preempt a healthy one's validation.
+      const work = mapLimit(players,timerless ? 1 : this.config.extractorConcurrency,async ({embed,ref}) => {
         if (scope.signal.aborted) return;
         const media = await this.dispatcher.extract(embed,this.base+ref.path,ref.language,metrics,scope.signal);
         if (media.length) {

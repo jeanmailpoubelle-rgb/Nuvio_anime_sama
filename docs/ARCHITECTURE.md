@@ -81,6 +81,37 @@ deadline semantics while limiting this timer drain. Node keeps native timers.
 Uncancelable native HTTP calls can still delay teardown until the app completes
 them; the plugin cannot cancel those transport calls through AbortSignal.
 
+## Timerless NuvioTV compatibility in 1.0.4
+
+NuvioTV release **1.0.0** has a synchronous `__native_fetch`, without
+`setTimeout`, `clearTimeout` or `__plugin_sleep`. The old scheduler referenced
+missing timer functions and native calls returned no streams. This is distinct
+from the mobile URL-bridge issue fixed in 1.0.2.
+
+Runtime capability detection now selects cooperative deadlines on timerless
+builds. Request boundaries and worker transitions check pending deadlines before
+starting more work and after HTTP/body reads. No sleeps, spin loops or invented
+timer APIs are used. Host extraction is sequential only in that runtime because
+its native HTTP blocks the JS thread: finishing the preferred host's validation
+before launching another preserves already discovered healthy streams. Existing
+grace/host/resolution budgets still prevent further stages once expired.
+
+A synchronous native call cannot be interrupted by these JS checkpoints. The
+app's HTTP timeout/cancellation still bounds that call; it can exceed the plugin's
+nominal JS budget before returning. Mobile and Node retain real timer scheduling
+and bounded concurrent extraction. The hostname configuration and playback
+headers are shared across both paths.
+
+That release's four-argument HTTP bridge supplies text only, without `bodyBase64`,
+and converts HEAD to GET. The provider only uses GET/HEAD, so extra modern bridge
+arguments do not alter request bodies. A successful text-only response records
+the transport capability; subsequent HEAD probes become a GET with `Range:
+bytes=0-0` instead of buffering a large video response. Binary reads fail explicitly
+with `BINARY_UNAVAILABLE` rather than returning empty/fabricated data. Sendvid's
+binary placeholder validation remains required, so those streams are excluded
+on this legacy app rather than accepted without validation. Modern binary-capable
+TV/mobile bridges retain lazy bounded binary decoding.
+
 ### Earlier catalog improvements
 
 The original default path accepted only numeric TMDB IDs and required an injected
@@ -179,6 +210,14 @@ The old 1.0.1 artifact reproducibly returns **zero requests/zero streams** under
 these bridges; 1.0.2 returns working streams. Both sanitized reports are committed.
 This exercises the native library on Linux/JVM, not Android/iOS networking or
 device playback. Downloaded dependencies, compiler output and media never enter git.
+
+The `--runtime tv` profile uses checksum-pinned NuvioTV **1.0.0** source, QuickJS 1.0.5 and
+Jsoup 1.17.2. It compiles the actual TV URL/DOM registration blocks, complete JS
+polyfills and call wrapper from that source, with synchronous local HTTP handoff
+to Node. It registers no timers or sleep function, strips binary data from responses
+and reproduces the release's HEAD-to-GET behavior. Both the old published artifact
+and the fixed bundle can be replayed through this profile. This validates the TV
+runtime contract on Linux/JVM, not an Android TV emulator or device.
 
 The separate real-HTTP WASM probe uses one short-lived worker per case and retains its
 QuickJS-WASM instance until process exit. This avoids a development-harness runtime

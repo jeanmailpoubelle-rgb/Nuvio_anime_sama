@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const {pollingTimers} = require('../src/timers');
+const {pollingTimers,cooperativeTimers} = require('../src/timers');
 function host() {
   let now=0,serial=0;
   const sleeps=new Map();
@@ -25,4 +25,11 @@ test('native polling preserves deadlines and handles callbacks scheduling/cancel
   const canceled=h.timers.setTimer(()=>events.push('canceled'),400);
   h.timers.setTimer(()=>{events.push(h.now());h.timers.clearTimer(canceled);h.timers.setTimer(()=>events.push(h.now()),30);},250);
   h.drain();assert.deepEqual(events,[250,280]);
+});
+test('timerless TV deadlines advance at checkpoints without sleeps and honor cancellation',()=>{
+  let now=0;const timers=cooperativeTimers(()=>now),events=[];
+  const removed=timers.setTimer(()=>events.push('removed'),5);timers.clearTimer(removed);
+  timers.setTimer(()=>events.push('request timeout'),6000);
+  now=5999;timers.flushTimers();assert.deepEqual(events,[]);
+  now=6500;timers.flushTimers();timers.flushTimers();assert.deepEqual(events,['request timeout']);
 });

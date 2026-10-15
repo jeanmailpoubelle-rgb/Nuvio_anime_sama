@@ -6,6 +6,39 @@ extraction and playback validation. They exclude opening metadata beforehand and
 the separate media segment sample. Network location, signed URLs, remote load and
 the success collection window affect each run; these are samples, not guarantees.
 
+## Android TV and phone verification (1.0.4)
+
+NuvioTV release **1.0.0** provides synchronous text-only native HTTP but no JS timer functions.
+The published 1.0.3 artifact returned **zero streams in all four TV cases**, with
+only 1–2 mapping requests before failure. Replaying 1.0.4 through the same pinned
+QuickJS 1.0.5, TV polyfills, Java URL/Jsoup and synchronous bridge contract returned:
+
+| S1E1 selection | TV time (ms) | TV streams | TV requests | Phone time (ms) | Phone streams |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| One Piece TMDB | 8032 | 1 | 12 | 4485 | 1 |
+| One Piece IMDb | 5721 | 1 | 12 | 4724 | 1 |
+| One Piece Kitsu | 4866 | 1 | 12 | 3403 | 1 |
+| Jujutsu Kaisen TMDB | 9995 | 2 | 14 | 5186 | 4 |
+
+All eight working cases additionally retrieved HTTP 206, 4096-byte HLS segments.
+TV Jujutsu returned ANSEmbed 1080p VF/VOSTFR; One Piece returned 720p VOSTFR.
+Measurements include native runtime startup and full evaluation but exclude the
+separate media sample. These use Linux/JVM and Node HTTP, not TV hardware; network
+variability and runtime warm-up affect timings. Reports:
+[`TV before`](NATIVE-TV-REGRESSION-1.0.3.json),
+[`TV after`](NATIVE-TV-VERIFICATION-1.0.4.json),
+[`phone regression`](NATIVE-MOBILE-VERIFICATION-1.0.4.json).
+
+The TV scheduler checks deadlines between HTTP stages without sleeping or spinning.
+Legacy HEAD probes use one-byte ranges, and binary-only validations stay unavailable
+with an explicit error code because this app release cannot return original bytes.
+Because TV fetch blocks the JS thread, it finishes each prioritized host before
+starting another. The existing success window can therefore return fewer hosts
+than phone concurrency does. A blocking TV HTTP request remains bounded by the
+app's timeout; the plugin cannot interrupt it at its nominal JS deadline.
+Mobile/Node retain concurrent extraction and real timers. Domain configuration,
+stream metadata and playback headers are shared across both paths.
+
 ## Exact native bridge verification (1.0.2)
 
 The user's 1.0.1 installation loaded settings but issued no stream requests.

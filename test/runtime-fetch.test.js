@@ -16,3 +16,12 @@ test('native binary transport decodes only on demand and fallback transport rema
 test('native transport also accepts the synchronous NuvioTV bridge result',async()=>{
   const response=await nativeFetch(()=>JSON.stringify({ok:true,status:200,body:'OK'}),'https://player.test');assert.equal(await response.text(),'OK');
 });
+test('TV 1.0.0 text-only transport avoids video downloads for HEAD and never invents binary data',async()=>{
+  const state={},calls=[];
+  const bridge=(...args)=>{calls.push(args);return JSON.stringify({ok:true,status:200,body:'text',headers:{}});};
+  const r=await nativeFetch(bridge,'https://site.test',{},state);
+  assert.equal(state.textOnly,true);assert.throws(()=>r.arrayBuffer(),{code:'BINARY_UNAVAILABLE'});
+  await nativeFetch(bridge,'https://cdn.test/video.mp4',{method:'HEAD',headers:{Referer:'https://embed.test'}},state);
+  assert.equal(calls[1][1],'GET');assert.equal(JSON.parse(calls[1][2]).Range,'bytes=0-0');
+  assert.equal(JSON.parse(calls[1][2]).Referer,'https://embed.test');
+});

@@ -33,6 +33,21 @@ function pollingTimers(set = setTimeout, clear = clearTimeout, now = Date.now, i
     }
   };
 }
-const timers = typeof __plugin_sleep === 'function' ? pollingTimers()
+// Older NuvioTV has synchronous native HTTP and no timer/sleep host functions.
+// Check deadlines between network stages instead of referencing missing globals
+// or spinning the JS thread. A blocking native call remains app-timeout-bound.
+function cooperativeTimers(now = Date.now) {
+  const pending = new Map();
+  let serial = 0;
+  return {
+    setTimer(callback,ms) { const id=++serial;pending.set(id,{callback,at:now()+Math.max(0,ms)});return id; },
+    clearTimer(id) { pending.delete(id); },
+    flushTimers() {
+      for (const [id,task] of [...pending]) if (task.at <= now() && pending.delete(id)) task.callback();
+    }
+  };
+}
+const timerless = typeof setTimeout !== 'function' || typeof clearTimeout !== 'function';
+const timers = timerless ? cooperativeTimers() : typeof __plugin_sleep === 'function' ? pollingTimers()
   : {setTimer:(fn,ms)=>setTimeout(fn,ms),clearTimer:id=>clearTimeout(id)};
-module.exports = {...timers,pollingTimers};
+module.exports = {...timers,flushTimers:timers.flushTimers || (()=>{}),timerless,pollingTimers,cooperativeTimers};

@@ -52,7 +52,7 @@ test('fresh-install Nuvio Catalog resolution works without a key and waits for n
 test('Nuvio settings evaluate with the same module wrapper and publish a visible diagnostic toggle',async()=>{
   const result=await runNative({},[],{}, {settingsLayout:true});
   assert.equal(result.calls.length,0);
-  assert.ok(result.streams.some(f=>f.type==='info' && f.label.includes('1.0.3')));
+  assert.ok(result.streams.some(f=>f.type==='info' && f.label.includes('1.0.4')));
   assert.equal(result.streams.find(f=>f.key==='diagnostics').type,'toggle');
 });
 test('Ktor empty query/fragment markers do not reject a base URL, while actual URL components remain invalid',async()=>{
@@ -73,4 +73,27 @@ test('fresh-install QuickJS accepts Kitsu catalog IDs and series media type with
   const result=await runNative({},['kitsu:12:1','series',1,1],automaticRoutes());
   assert.equal(result.streams.length,1,result.logs.join('\n'));assert.equal(result.streams[0].source,'ANSEmbed');
   assert.ok(!result.calls.some(c=>c.url.includes('themoviedb.org')));
+});
+test('Android TV resolves catalog episodes with its actual timerless polyfills and synchronous HTTP bridge',async()=>{
+  const result=await runNative({},['37854','tv',1,1],automaticRoutes(),{tvRuntime:true,drainNative:true});
+  assert.equal(result.streams.length,1,result.logs.join('\n'));
+  assert.equal(result.streams[0].name,'Anime-Sama • VOSTFR');
+  assert.equal(result.streams[0].headers.Origin,'https://ansembed.net');
+  assert.ok(result.calls.length>1);
+});
+test('timerless Android TV skips dead/duplicate players and retains a healthy alternate host',async()=>{
+  const ref={path:'/catalogue/test/saison1/vf/',index:0,language:'vf',script:'/catalogue/test/saison1/vf/episodes.js'};
+  const routes={
+    ['https://domain-b.example'+ref.script]:"eps1=['https://ansembed.net/dead'];eps2=['https://ansembed.net/good'];eps3=['https://ansembed.net/good'];",
+    'https://ansembed.net/good':"<video src='https://cdn.test/video.mp4'></video>",
+    'https://cdn.test/video.mp4':''
+  };
+  const result=await runNative({animeSamaBaseUrl:'https://domain-b.example'},[encodeEpisode([ref]),'tv',1,1],routes,{tvRuntime:true});
+  assert.equal(result.streams.length,1,result.logs.join('\n'));assert.equal(result.streams[0].version,'VF');
+  assert.equal(result.calls.filter(c=>c.url==='https://ansembed.net/good').length,1);
+  assert.equal(result.streams[0].headers.Referer,'https://ansembed.net/good');
+});
+test('newer timerless TV binary-capable polyfills retain compatibility with the same bundle',async()=>{
+  const result=await runNative({},['37854','tv',1,1],automaticRoutes(),{tvRuntime:true,modernTv:true});
+  assert.equal(result.streams.length,1,result.logs.join('\n'));
 });

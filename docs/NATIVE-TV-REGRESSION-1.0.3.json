@@ -1,0 +1,62 @@
+{
+  "checkedAt": "2026-10-15T16:51:51.860659+00:00",
+  "runtime": "dokar3 quickjs-kt 1.0.5 JVM; exact NuvioTV 1.0.0 timerless polyfills, URL/Jsoup bridges and synchronous text-only HTTP contract; Node HTTP; not Android playback",
+  "nuvioCommit": "9f17e8bf4abc799dc8c832d2894a8b3b166e4353",
+  "settings": {},
+  "injectedTmdbKey": false,
+  "bundleSha256": "fe3fc5d6174f9f5f3ec3a29add20a8927e414065c217953d126bd78762bf9ef3",
+  "cases": [
+    {
+      "title": "One Piece TMDB",
+      "id": "37854",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 2,
+      "resultReadyMs": 2749,
+      "resolveMs": 2752,
+      "runtimeDrainMs": 3,
+      "streams": [],
+      "mediaSample": null
+    },
+    {
+      "title": "One Piece IMDb",
+      "id": "tt0388629",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 2,
+      "resultReadyMs": 2026,
+      "resolveMs": 2030,
+      "runtimeDrainMs": 4,
+      "streams": [],
+      "mediaSample": null
+    },
+    {
+      "title": "One Piece Kitsu",
+      "id": "kitsu:12",
+      "mediaType": "series",
+      "season": 1,
+      "episode": 1,
+      "requests": 1,
+      "resultReadyMs": 848,
+      "resolveMs": 850,
+      "runtimeDrainMs": 2,
+      "streams": [],
+      "mediaSample": null
+    },
+    {
+      "title": "Jujutsu Kaisen",
+      "id": "95479",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 2,
+      "resultReadyMs": 1449,
+      "resolveMs": 1452,
+      "runtimeDrainMs": 3,
+      "streams": [],
+      "mediaSample": null
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 {
   "name": "Anime-Sama",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Anime-Sama streaming provider for Nuvio. Catalogs use the companion addon.",
   "author": "jeanmailpoubelle-rgb",
   "scrapers": [
     {
       "id": "anime-sama",
       "name": "Anime-Sama",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "description": "VF/VOSTFR, concurrent host extraction, editable site address.",
       "filename": "providers/anime-sama.js",
       "supportedTypes": [

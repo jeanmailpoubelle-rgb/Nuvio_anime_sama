@@ -1,0 +1,148 @@
+{
+  "checkedAt": "2026-10-15T16:51:06.479684+00:00",
+  "runtime": "dokar3 quickjs-kt 1.0.15 JVM; exact pinned Nuvio 0.5.9 startup, URL/Ktor and DOM/Ksoup bridges; Node HTTP; not Android playback",
+  "nuvioCommit": "db0c50b503039863909c86405907462bf1752193",
+  "settings": {},
+  "injectedTmdbKey": false,
+  "bundleSha256": "14cc28400a6d0031b983a16a825dbfe0e39fd9e8c26a045d5dc56c3106f92cc7",
+  "cases": [
+    {
+      "title": "One Piece TMDB",
+      "id": "37854",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 12,
+      "resultReadyMs": 4403,
+      "resolveMs": 4485,
+      "runtimeDrainMs": 82,
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      }
+    },
+    {
+      "title": "One Piece IMDb",
+      "id": "tt0388629",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 12,
+      "resultReadyMs": 4718,
+      "resolveMs": 4724,
+      "runtimeDrainMs": 6,
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      }
+    },
+    {
+      "title": "One Piece Kitsu",
+      "id": "kitsu:12",
+      "mediaType": "series",
+      "season": 1,
+      "episode": 1,
+      "requests": 12,
+      "resultReadyMs": 3400,
+      "resolveMs": 3403,
+      "runtimeDrainMs": 3,
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      }
+    },
+    {
+      "title": "Jujutsu Kaisen",
+      "id": "95479",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 28,
+      "resultReadyMs": 4731,
+      "resolveMs": 5186,
+      "runtimeDrainMs": 455,
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VF • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "Smoothpre",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "uqload.vc",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      }
+    }
+  ]
+}
