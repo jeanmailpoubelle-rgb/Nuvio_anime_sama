@@ -1,6 +1,6 @@
 {
   "name": "nuvio-anime-sama",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Anime-Sama native Nuvio stream plugin and catalog addon",
   "license": "GPL-3.0-or-later",
@@ -14,7 +14,8 @@
     "check": "npm run build && npm run lint && npm test",
     "start": "node src/server.js",
     "test:live": "node scripts/live.js",
-    "test:native:live": "node scripts/native-live.js"
+    "test:native:live": "node scripts/native-live.js",
+    "test:native:jvm": "python3 scripts/native-jvm.py"
   },
   "dependencies": {
     "cheerio": "1.2.0"

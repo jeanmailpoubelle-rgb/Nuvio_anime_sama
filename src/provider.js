@@ -3,6 +3,7 @@ const { Cache } = require('./cache');
 const { HttpClient } = require('./http');
 const { Dispatcher } = require('./extractors/dispatcher');
 const { mapLimit, deadline } = require('./concurrency');
+const {setTimer,clearTimer} = require('./timers');
 const Pages = require('./pages');
 const Id = require('./ids');
 const U = require('./url');
@@ -146,7 +147,7 @@ class AnimeSamaProvider {
         const media = await this.dispatcher.extract(embed,this.base+ref.path,ref.language,metrics,scope.signal);
         if (media.length) {
           collected.push(...media);
-          if (!graceTimer) graceTimer = setTimeout(signalReady,this.config.successGraceMs);
+          if (!graceTimer) graceTimer = setTimer(signalReady,this.config.successGraceMs);
         }
       });
       try {
@@ -154,7 +155,7 @@ class AnimeSamaProvider {
         // Cancel unfinished network work and let reports settle before returning.
         scope.cancel();
         await work;
-      } finally { if (graceTimer) clearTimeout(graceTimer); }
+      } finally { if (graceTimer) clearTimer(graceTimer); }
       const streams = deduplicate(collected.map(streamObject));
       metrics.streams = streams.length;
       return {streams,metrics};

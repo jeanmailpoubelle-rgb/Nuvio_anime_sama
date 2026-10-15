@@ -4,7 +4,10 @@ function normalizeBase(value) {
   const input = String(value).trim();
   if (input.includes('@')) throw new Error('Website login details are not allowed.');
   const u = new URL(input.includes('://') ? input : `https://${input}`);
-  if (!/^https?:$/.test(u.protocol) || !u.hostname || u.username || u.password || u.search || u.hash || !/^\/*$/.test(u.pathname)) {
+  // Nuvio's Ktor URL bridge emits bare '?' / '#' for empty query/fragment.
+  // Validate the supplied address itself; keep rejecting real query/fragment
+  // values and credentials even when a runtime shim omits URL.username.
+  if (!/^https?:$/.test(u.protocol) || !u.hostname || u.username || u.password || /[?#]/.test(input) || !/^\/*$/.test(u.pathname)) {
     throw new Error('Use the website home address, without a path, login, query or fragment.');
   }
   return u.origin.toLowerCase();

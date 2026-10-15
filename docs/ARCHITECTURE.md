@@ -16,8 +16,9 @@
 | `src/extractors/dispatcher.js` | Host routing, independent deadlines, validation and header inheritance |
 | `src/streams.js` | Accurate labels, structured metadata, deduplication and addon header hints |
 | `src/native.js` | Nuvio getStreams/onSettings, source alias/episode mapping and safe diagnostics |
-| `src/catalog-context.js` | TMDB/API or public fallback, bounded IMDb/Cinemeta parsing and Kitsu catalog identities |
+| `src/catalog-context.js` | Public Nuvio catalog identity + episodes, isolated TMDB/Cinemeta fallbacks and Kitsu identities |
 | `src/runtime-fetch.js` | Nuvio bridge transport with lazy, bounded binary decoding; standard fetch fallback |
+| `src/timers.js` | Shared short native sleeps; cancelable deadlines without long evaluation drain |
 | `src/addon.js`, `src/server.js` | Addon HTTP resources and local native artifact hosting |
 
 ## Nuvio native plugin
@@ -30,7 +31,7 @@ Its async functions are transpiled into Promise/generator code for older engines
 
 The app wraps the module, injects `SCRAPER_SETTINGS`/`TMDB_API_KEY`, then calls
 `getStreams(id, mediaType, season, episode)`. Settings use `onSettings()` and the
-app's `text`/`select` layout schema. Current upstream creates a fresh JS runtime
+app's `info`/`text`/`select`/`toggle` layout schema. Current upstream creates a fresh JS runtime
 per invocation; module-global caches cannot persist across native selections.
 The companion server's provider and caches persist for that server process.
 
@@ -50,7 +51,32 @@ arguments as Nuvio 0.5.9/0.5.10, but skips its eager base64 decoding for text. B
 prefixes decode only the requested bytes. Both asynchronous mobile and synchronous
 NuvioTV bridge return types are supported; other runtimes use normal fetch.
 
-## Native catalog compatibility in 1.0.1
+## Native loading and catalog compatibility in 1.0.2
+
+The installed 1.0.1 module could open settings while stream calls stopped before
+their first request. Nuvio's exact `UrlBridge.kt`, backed by Ktor, reports empty
+query/fragment as `?` and `#`. Base validation mistook these for actual components.
+The earlier JS harness used Node URL values (`""`) and missed this discrepancy.
+Validation now checks the supplied address for real query/fragment delimiters;
+relative-site and normalized embed URLs omit the bridge's empty query marker.
+Credentials, real query strings/fragments and non-root base paths remain rejected.
+
+For TMDB/IMDb inputs, one public `catalog.nuvio.tv/meta/{type}/{id}.json` request
+supplies identity and requested season episodes. This uses the same episode
+organization as the user's Nuvio Catalog addon, without a second season lookup
+or app API key. App-key/public TMDB and Cinemeta remain isolated outage fallbacks;
+Kitsu keeps its direct metadata path. Metadata is never confused with a final
+playback URL, and source match/version rules remain in force.
+
+Nuvio's Kotlin `evaluate` also waits for outstanding native callbacks. Its
+`clearTimeout` suppresses the callback but cannot cancel the coroutine sleep.
+An eleven-second canceled deadline therefore delayed completed results by roughly
+ten seconds. Plugin-local timers now share sleeps of at most 100 ms, retaining
+deadline semantics while limiting this timer drain. Node keeps native timers.
+Uncancelable native HTTP calls can still delay teardown until the app completes
+them; the plugin cannot cancel those transport calls through AbortSignal.
+
+### Earlier catalog improvements
 
 The original default path accepted only numeric TMDB IDs and required an injected
 TMDB key. Earlier live native testing used an explicit mapping and did not exercise
@@ -74,7 +100,7 @@ positions remain authoritative, including missing VF entries. Equal total episod
 counts and a first source episode numbered 1 are no longer required. Ambiguous
 season arrangements still need an explicit map rather than invented offsets.
 
-A diagnostic switch logs catalog identity, selected relative path/index, timings
+A diagnostic toggle logs catalog identity, selected relative path/index, timings
 and safe failure codes. Current Nuvio 0.5.9 injects the TMDB key and its polyfills
 match the pinned 0.5.10 snapshot; lacking that global is supported as a fallback,
 not asserted to be the cause on every device. The UI's repository chips reflect
@@ -139,7 +165,17 @@ mapping. A single domain setting fixes origin changes, not changed website marku
 
 ## Verification scope
 
-The real-HTTP native probe uses one short-lived worker per case and retains its
+`npm run test:native:jvm` downloads SHA-256-pinned 0.5.9 Nuvio `JsBindings.kt`,
+`UrlBridge.kt`, `DomBridge.kt` and registry source, with the matching Kotlin
+QuickJS/Ktor/Ksoup dependencies. It evaluates the actual bundle through those
+bridges, measures through full native callback completion, closes the runtime,
+and retrieves a bounded HLS segment through a proxy-aware Node HTTP adapter.
+The old 1.0.1 artifact reproducibly returns **zero requests/zero streams** under
+these bridges; 1.0.2 returns working streams. Both sanitized reports are committed.
+This exercises the native library on Linux/JVM, not Android/iOS networking or
+device playback. Downloaded dependencies, compiler output and media never enter git.
+
+The separate real-HTTP WASM probe uses one short-lived worker per case and retains its
 QuickJS-WASM instance until process exit. This avoids a development-harness runtime
 free assertion observed after a large Cinemeta case had already returned its stream.
 It verifies actual bundle execution, IDs, bridge response limits, metadata and media

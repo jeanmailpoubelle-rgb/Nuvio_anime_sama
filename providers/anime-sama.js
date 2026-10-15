@@ -50,7 +50,7 @@ var require_config2 = __commonJS({
       const input = String(value).trim();
       if (input.includes("@")) throw new Error("Website login details are not allowed.");
       const u = new URL(input.includes("://") ? input : `https://${input}`);
-      if (!/^https?:$/.test(u.protocol) || !u.hostname || u.username || u.password || u.search || u.hash || !/^\/*$/.test(u.pathname)) {
+      if (!/^https?:$/.test(u.protocol) || !u.hostname || u.username || u.password || /[?#]/.test(input) || !/^\/*$/.test(u.pathname)) {
         throw new Error("Use the website home address, without a path, login, query or fragment.");
       }
       return u.origin.toLowerCase();
@@ -68,9 +68,55 @@ var require_config2 = __commonJS({
   }
 });
 
+// src/timers.js
+var require_timers = __commonJS({
+  "src/timers.js"(exports2, module2) {
+    function pollingTimers(set = setTimeout, clear = clearTimeout, now = Date.now, interval = 100) {
+      const pending = /* @__PURE__ */ new Map();
+      let serial = 0, timer, wakeAt;
+      function arm() {
+        if (!pending.size) return;
+        const due = Math.min(...Array.from(pending.values(), (t) => t.at));
+        const next = Math.min(due, now() + interval);
+        if (timer != null && wakeAt <= next) return;
+        if (timer != null) clear(timer);
+        wakeAt = next;
+        timer = set(() => {
+          timer = void 0;
+          try {
+            for (const [id, task] of [...pending]) {
+              if (task.at <= now() && pending.delete(id)) task.callback();
+            }
+          } finally {
+            arm();
+          }
+        }, Math.max(0, next - now()));
+      }
+      return {
+        setTimer(callback, ms) {
+          const id = ++serial;
+          pending.set(id, { callback, at: now() + Math.max(0, ms) });
+          arm();
+          return id;
+        },
+        clearTimer(id) {
+          pending.delete(id);
+          if (!pending.size && timer != null) {
+            clear(timer);
+            timer = void 0;
+          }
+        }
+      };
+    }
+    var timers = typeof __plugin_sleep === "function" ? pollingTimers() : { setTimer: (fn, ms) => setTimeout(fn, ms), clearTimer: (id) => clearTimeout(id) };
+    module2.exports = { ...timers, pollingTimers };
+  }
+});
+
 // src/concurrency.js
 var require_concurrency = __commonJS({
   "src/concurrency.js"(exports2, module2) {
+    var { setTimer, clearTimer } = require_timers();
     function mapLimit(items, limit, fn) {
       return __async(this, null, function* () {
         const out = new Array(items.length);
@@ -94,9 +140,9 @@ var require_concurrency = __commonJS({
       const cancel = () => controller.abort();
       if (parent == null ? void 0 : parent.aborted) cancel();
       else parent == null ? void 0 : parent.addEventListener("abort", cancel);
-      const timer = setTimeout(cancel, ms);
+      const timer = setTimer(cancel, ms);
       return { signal: controller.signal, cancel, close() {
-        clearTimeout(timer);
+        clearTimer(timer);
         parent == null ? void 0 : parent.removeEventListener("abort", cancel);
       } };
     }
@@ -196,6 +242,7 @@ var require_http = __commonJS({
   "src/http.js"(exports2, module2) {
     var { abortError } = require_concurrency();
     var { runtimeFetch } = require_runtime_fetch();
+    var { setTimer, clearTimer } = require_timers();
     var USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
     var HttpError = class extends Error {
       constructor(status) {
@@ -265,14 +312,14 @@ var require_http = __commonJS({
               controller.abort();
               reject(((_a3 = options.signal) == null ? void 0 : _a3.aborted) ? abortError() : Object.assign(new Error("Request timed out."), { code: "TIMEOUT" }));
             };
-            timer = setTimeout(stop, options.timeoutMs || this.config.requestTimeoutMs);
+            timer = setTimer(stop, options.timeoutMs || this.config.requestTimeoutMs);
             listener = stop;
             (_a2 = options.signal) == null ? void 0 : _a2.addEventListener("abort", listener);
           });
           try {
             return yield Promise.race([job(), stopped]);
           } finally {
-            clearTimeout(timer);
+            clearTimer(timer);
             (_b = options.signal) == null ? void 0 : _b.removeEventListener("abort", listener);
             if (metrics) metrics.networkMs += Date.now() - started;
           }
@@ -443,7 +490,7 @@ var require_url = __commonJS({
       const url = absolute(raw, base);
       if (!url) return null;
       const u = new URL(url);
-      return u.pathname + u.search;
+      return u.pathname + (u.search === "?" ? "" : u.search);
     }
     function onSite(raw, base) {
       const path = relativeSiteUrl(raw, base);
@@ -715,7 +762,7 @@ var require_player_pages = __commonJS({
       if (label === "Vidmoly" && path.startsWith("/w/")) path = "/embed-" + path.slice(3) + ".html";
       else if (label === "StreamWish") path = path.replace(/^\/(?:e|f)\//, "/");
       else if (label === "Smoothpre") path = path.replace(/^\/(?:d|download|file|f)\//, "/v/");
-      return u.origin + path + u.search;
+      return u.origin + path + (u.search === "?" ? "" : u.search);
     }
     module2.exports = { sources, redirect, hostName, quality, normalizeEmbed };
   }
@@ -1085,6 +1132,7 @@ var require_provider = __commonJS({
     var { HttpClient } = require_http();
     var { Dispatcher } = require_dispatcher();
     var { mapLimit, deadline } = require_concurrency();
+    var { setTimer, clearTimer } = require_timers();
     var Pages = require_pages();
     var Id2 = require_ids();
     var U = require_url();
@@ -1265,7 +1313,7 @@ var require_provider = __commonJS({
               const media = yield this.dispatcher.extract(embed, this.base + ref.path, ref.language, metrics, scope.signal);
               if (media.length) {
                 collected.push(...media);
-                if (!graceTimer) graceTimer = setTimeout(signalReady, this.config.successGraceMs);
+                if (!graceTimer) graceTimer = setTimer(signalReady, this.config.successGraceMs);
               }
             }));
             try {
@@ -1273,7 +1321,7 @@ var require_provider = __commonJS({
               scope.cancel();
               yield work;
             } finally {
-              if (graceTimer) clearTimeout(graceTimer);
+              if (graceTimer) clearTimer(graceTimer);
             }
             const streams = deduplicate(collected.map(streamObject));
             metrics.streams = streams.length;
@@ -1294,6 +1342,7 @@ var require_provider = __commonJS({
 var require_catalog_context = __commonJS({
   "src/catalog-context.js"(exports2, module2) {
     var cheerio = require("cheerio");
+    var NUVIO_CATALOG_URL = "https://catalog.nuvio.tv";
     function nativeId(value) {
       const kitsu = /^(?:kitsu|kitsu-anime)[:/](\d+)(?=[:/]|$)/i.exec(String(value || "").trim());
       if (kitsu) return "kitsu:" + kitsu[1];
@@ -1421,7 +1470,7 @@ var require_catalog_context = __commonJS({
     }
     function titleContext(provider, id, type, key = "", season = 1) {
       return __async(this, null, function* () {
-        var _a, _b;
+        var _a, _b, _c;
         if (id.startsWith("kitsu:")) {
           const r2 = yield provider.http.request(`https://kitsu.io/api/edge/anime/${id.slice(6)}`, { category: "mapping" });
           const attributes = (_b = (_a = JSON.parse(r2.body)) == null ? void 0 : _a.data) == null ? void 0 : _b.attributes;
@@ -1439,6 +1488,23 @@ var require_catalog_context = __commonJS({
             sourceSeason: seasonName ? Number(seasonName[1] || seasonName[2]) : void 0,
             absolute: true
           };
+        }
+        try {
+          const catalogId = id.startsWith("tt") ? id : "tmdb:" + id;
+          const r2 = yield provider.http.request(`${NUVIO_CATALOG_URL}/meta/${type === "tv" ? "series" : "movie"}/${catalogId}.json`, { category: "mapping" });
+          const meta = cinemetaMeta(r2.body, season);
+          if (!(meta == null ? void 0 : meta.name) || !Array.isArray(meta.genres) || type === "tv" && !((_c = meta.catalogEpisodes) == null ? void 0 : _c.length)) throw new Error("Incomplete catalog metadata.");
+          return {
+            name: meta.name,
+            title: meta.name,
+            aliases: meta.aliases || [],
+            genres: meta.genres.map((name) => ({ name, id: /^animation$/i.test(name) ? 16 : void 0 })),
+            first_air_date: meta.released || meta.releaseInfo,
+            release_date: meta.released || meta.releaseInfo,
+            catalogEpisodes: meta.catalogEpisodes,
+            absoluteOffset: meta.absoluteOffset
+          };
+        } catch (_error) {
         }
         if (id.startsWith("tt")) {
           const r2 = yield provider.http.request(`https://v3-cinemeta.strem.io/meta/${type === "tv" ? "series" : "movie"}/${id}.json`, { category: "mapping" });
@@ -1467,7 +1533,9 @@ var require_catalog_context = __commonJS({
     }
     function seasonContext(provider, id, season, key = "", metadata) {
       return __async(this, null, function* () {
+        var _a;
         if (id.startsWith("kitsu:")) return { absolute: true };
+        if ((_a = metadata == null ? void 0 : metadata.catalogEpisodes) == null ? void 0 : _a.length) return { episodes: metadata.catalogEpisodes, absoluteOffset: metadata.absoluteOffset };
         if (id.startsWith("tt")) {
           const episodes = (metadata == null ? void 0 : metadata.catalogEpisodes) || [];
           if (!episodes.length) throw Object.assign(new Error("IMDb catalog season unavailable."), { code: "SEASON_UNAVAILABLE" });
@@ -1487,11 +1555,47 @@ var require_catalog_context = __commonJS({
   }
 });
 
+// package.json
+var require_package = __commonJS({
+  "package.json"(exports2, module2) {
+    module2.exports = {
+      name: "nuvio-anime-sama",
+      version: "1.0.2",
+      private: true,
+      description: "Anime-Sama native Nuvio stream plugin and catalog addon",
+      license: "GPL-3.0-or-later",
+      engines: {
+        node: ">=22"
+      },
+      scripts: {
+        build: "node scripts/build.js",
+        test: "node --test test/*.test.js",
+        lint: "eslint src scripts test",
+        check: "npm run build && npm run lint && npm test",
+        start: "node src/server.js",
+        "test:live": "node scripts/live.js",
+        "test:native:live": "node scripts/native-live.js",
+        "test:native:jvm": "python3 scripts/native-jvm.py"
+      },
+      dependencies: {
+        cheerio: "1.2.0"
+      },
+      devDependencies: {
+        esbuild: "0.25.12",
+        eslint: "9.39.1",
+        "quickjs-emscripten": "0.31.0",
+        undici: "7.30.0"
+      }
+    };
+  }
+});
+
 // src/native.js
 var { AnimeSamaProvider } = require_provider();
 var { defaults } = require_config2();
 var Id = require_ids();
 var Catalog = require_catalog_context();
+var { version: pluginVersion } = require_package();
 function clean(value) {
   return String(value || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
@@ -1646,6 +1750,7 @@ function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
       const settings = typeof SCRAPER_SETTINGS === "undefined" ? {} : SCRAPER_SETTINGS;
+      console.info("[Anime-Sama]", pluginVersion, "getStreams", Catalog.nativeId(tmdbId) || "source/unsupported ID", mediaType, season, episode);
       const provider = nativeProvider(settings);
       if (String(tmdbId).startsWith("as:ep:")) return (yield provider.streams(tmdbId)).streams;
       const id = Catalog.nativeId(tmdbId), type = ["tv", "series", "show", "anime"].includes(mediaType) ? "tv" : mediaType;
@@ -1667,10 +1772,11 @@ function getStreams(tmdbId, mediaType, season, episode) {
 }
 function onSettings() {
   return [
+    { type: "info", label: `Anime-Sama ${pluginVersion} · Métadonnées Nuvio Catalog. Le test de fournisseur Nuvio utilise Matrix (non disponible sur Anime-Sama) : tester avec un véritable épisode animé.` },
     { type: "text", key: "animeSamaBaseUrl", label: "Adresse du site Anime-Sama", placeholder: defaults.animeSamaBaseUrl, description: "Laisser vide pour utiliser la configuration du plugin." },
     { type: "select", key: "version", label: "Version", defaultValue: defaults.version, options: [{ label: "Toutes les versions", value: "all" }, { label: "VOSTFR", value: "vostfr" }, { label: "VF", value: "vf" }] },
     { type: "text", key: "sourceMap", label: "Correspondances TMDB (JSON)", description: "Correspondances personnalisées facultatives pour des cas ambigus. Voir le README." },
-    { type: "switch", key: "diagnostics", label: "Diagnostic", defaultValue: false, description: "Journaliser les étapes et les causes des liens manquants, sans URL signée ni clé API." }
+    { type: "toggle", key: "diagnostics", label: "Diagnostic", defaultValue: false, description: "Journaliser les étapes et les causes des liens manquants, sans URL signée ni clé API." }
   ];
 }
 module.exports = { getStreams, onSettings, resolveSelection, clean, sourceTitle, chooseCatalogEpisode, episodeReferences };

@@ -33,7 +33,7 @@ function relativeSiteUrl(raw, base) {
   const url = absolute(raw, base);
   if (!url) return null;
   const u = new URL(url);
-  return u.pathname + u.search;
+  return u.pathname + (u.search === '?' ? '' : u.search);
 }
 function onSite(raw, base) {
   // Site-owned links follow the configured origin even if HTML contains an old one.

@@ -1,0 +1,138 @@
+{
+  "checkedAt": "2026-10-15T08:17:12.517Z",
+  "pluginVersion": "1.0.2",
+  "runtime": "QuickJS with Nuvio 0.5.9-beta-compatible fetch/DOM callbacks in a short-lived process per case; not a device playback/teardown test",
+  "settings": {},
+  "injectedTmdbKey": false,
+  "manualMappings": false,
+  "cases": [
+    {
+      "name": "One Piece S1E1 TMDB",
+      "id": "37854",
+      "ms": 4353,
+      "resultReadyMs": 4245,
+      "runtimeDrainMs": 31,
+      "requests": 12,
+      "streams": [
+        {
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "diagnostics": [
+        "[Anime-Sama] 1.0.2 getStreams 37854 tv 1 1"
+      ]
+    },
+    {
+      "name": "One Piece S1E1 IMDb",
+      "id": "tt0388629",
+      "ms": 3385,
+      "resultReadyMs": 3273,
+      "runtimeDrainMs": 89,
+      "requests": 12,
+      "streams": [
+        {
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "diagnostics": [
+        "[Anime-Sama] 1.0.2 getStreams tt0388629 tv 1 1"
+      ]
+    },
+    {
+      "name": "One Piece E1 Kitsu",
+      "id": "kitsu:12",
+      "ms": 3079,
+      "resultReadyMs": 3022,
+      "runtimeDrainMs": 38,
+      "requests": 12,
+      "streams": [
+        {
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "diagnostics": [
+        "[Anime-Sama] 1.0.2 getStreams kitsu:12 series 1 1"
+      ]
+    },
+    {
+      "name": "Jujutsu Kaisen S1E1 TMDB",
+      "id": "95479",
+      "ms": 11767,
+      "resultReadyMs": 5878,
+      "runtimeDrainMs": 5854,
+      "requests": 26,
+      "streams": [
+        {
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audio": [
+            "fr"
+          ],
+          "subtitles": null
+        },
+        {
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ]
+        },
+        {
+          "source": "Smoothpre",
+          "quality": "720p",
+          "version": "VF",
+          "type": "hls",
+          "audio": [
+            "fr"
+          ],
+          "subtitles": null
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "diagnostics": [
+        "[Anime-Sama] 1.0.2 getStreams 95479 tv 1 1"
+      ]
+    }
+  ]
+}

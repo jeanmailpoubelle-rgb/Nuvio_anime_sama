@@ -20,7 +20,19 @@ test('a missing/rejected app TMDB key falls back to public title/season metadata
   const calls=[];const provider=new AnimeSamaProvider({}, {fetch:async url=>{calls.push(url);return new Response(url.includes('api.themoviedb.org')?'{}':url.includes('/season/')?seasonHtml:titleHtml,{status:url.includes('api.themoviedb.org')?401:200});}});
   assert.equal((await Catalog.titleContext(provider,'37854','tv','test-key')).name,'ONE PIECE');
   assert.equal((await Catalog.seasonContext(provider,'37854',2,'test-key')).episodes[0].episode_number,62);
-  assert.equal(calls.length,4);assert.equal(calls.filter(u=>u.startsWith('https://www.themoviedb.org')).length,2);
+  assert.equal(calls.length,5);assert.equal(calls.filter(u=>u.startsWith('https://www.themoviedb.org')).length,2);
+});
+test('Nuvio Catalog resolves the exact catalog identity and season in one keyless request',async()=>{
+  const calls=[];
+  const provider=new AnimeSamaProvider({}, {fetch:async url=>{
+    calls.push(url);
+    assert.equal(url,'https://catalog.nuvio.tv/meta/series/tmdb:37854.json');
+    return new Response(JSON.stringify({meta:{id:'tt0388629',type:'series',name:'One Piece',genres:['Animation'],released:'1999-10-20',videos:[{season:0,episode:1},{season:1,episode:1},{season:1,episode:2},{season:2,episode:1}]}}));
+  }});
+  const metadata=await Catalog.titleContext(provider,'37854','tv','unneeded-key',2);
+  const season=await Catalog.seasonContext(provider,'37854',2,'unneeded-key',metadata);
+  assert.equal(metadata.name,'One Piece');assert.equal(metadata.genres[0].id,16);
+  assert.equal(season.absoluteOffset,2);assert.equal(season.episodes[0].episode_number,1);assert.equal(calls.length,1);
 });
 test('Kitsu anime identities need no TMDB translation or invented episode count',async()=>{
   const calls=[];const provider=new AnimeSamaProvider({}, {fetch:async url=>{calls.push(url);return new Response(JSON.stringify({data:{attributes:{canonicalTitle:'One Piece',titles:{en:'One Piece'},startDate:'1999-10-20',subtype:'TV',episodeCount:null}}}));}});

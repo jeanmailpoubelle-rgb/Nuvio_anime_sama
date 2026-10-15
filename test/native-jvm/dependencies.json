@@ -1,0 +1,136 @@
+{
+  "nuvioTag": "0.5.9-beta",
+  "nuvioCommit": "db0c50b503039863909c86405907462bf1752193",
+  "files": [
+    {
+      "name": "kotlin-compiler-embeddable-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.4.10/kotlin-compiler-embeddable-2.4.10.jar",
+      "sha256": "9309638a2ee03e6bde9ef4b7444055a94b84ab906563675d71ff9aecb64da913"
+    },
+    {
+      "name": "kotlin-build-tools-api-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/2.4.10/kotlin-build-tools-api-2.4.10.jar",
+      "sha256": "3953d283e7710c990672e403a87df393d9726a9bf3e172194ebb5c33e062fcb0"
+    },
+    {
+      "name": "kotlin-stdlib-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.10/kotlin-stdlib-2.4.10.jar",
+      "sha256": "4ec0293bc3751423b203f1d8493251c57c42e73eb6377a6b8560d0974ff0a6df"
+    },
+    {
+      "name": "kotlin-script-runtime-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-script-runtime/2.4.10/kotlin-script-runtime-2.4.10.jar",
+      "sha256": "f4a5b30c2fdfbe386b097101b7989dbeea3743c06396136664784e08e15c6899"
+    },
+    {
+      "name": "kotlin-reflect-1.6.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.6.10/kotlin-reflect-1.6.10.jar",
+      "sha256": "3277ac102ae17aad10a55abec75ff5696c8d109790396434b496e75087854203"
+    },
+    {
+      "name": "kotlin-daemon-embeddable-2.4.10.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/2.4.10/kotlin-daemon-embeddable-2.4.10.jar",
+      "sha256": "547d969a2eab602fe0bdfd9fcb1b563a5c6d30099d3351394d6427eba8288467"
+    },
+    {
+      "name": "kotlinx-coroutines-core-jvm-1.11.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.11.0/kotlinx-coroutines-core-jvm-1.11.0.jar",
+      "sha256": "d1d75aa01dffbb4d1c520e67e4c4e7f5f6174718e7cb4632412503f2f0e604fa"
+    },
+    {
+      "name": "quickjs-kt-jvm-1.0.15.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/github/dokar3/quickjs-kt-jvm/1.0.15/quickjs-kt-jvm-1.0.15.jar",
+      "sha256": "c8a8d0b47e2c3cd6fb21ea618204ba0a04027e09e41dc036c0f60518823f3d6d"
+    },
+    {
+      "name": "annotations-26.0.2.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/26.0.2/annotations-26.0.2.jar",
+      "sha256": "2037be378980d3ba9333e97955f3b2cde392aa124d04ca73ce2eee6657199297"
+    },
+    {
+      "name": "kotlinx-serialization-json-jvm-1.10.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.10.0/kotlinx-serialization-json-jvm-1.10.0.jar",
+      "sha256": "af1e3e1e8ee3176468e1ec729df853b2066071de94a84c412ad9fa135cb37f3a"
+    },
+    {
+      "name": "kotlinx-serialization-core-jvm-1.10.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.10.0/kotlinx-serialization-core-jvm-1.10.0.jar",
+      "sha256": "14d6f27ce28f61ebc4a516d562f911b7bc01cfbe5397fb884c45ea0db044c635"
+    },
+    {
+      "name": "ktor-http-jvm-3.4.1.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/ktor/ktor-http-jvm/3.4.1/ktor-http-jvm-3.4.1.jar",
+      "sha256": "c460cba4b48dc528c6cd03b0c6e36516fbd83c7eb84c8d1951c9273a2d3eb223"
+    },
+    {
+      "name": "ktor-utils-jvm-3.4.1.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/ktor/ktor-utils-jvm/3.4.1/ktor-utils-jvm-3.4.1.jar",
+      "sha256": "1973900965f9401aeaaffa77550988b3dd2d1acbe751ec8b1453043a4c599914"
+    },
+    {
+      "name": "ktor-io-jvm-3.4.1.jar",
+      "url": "https://repo.maven.apache.org/maven2/io/ktor/ktor-io-jvm/3.4.1/ktor-io-jvm-3.4.1.jar",
+      "sha256": "cbccf401f15b35760c5165fbea1c85cad42c76f2098ef1c0ed89f4f58e09f829"
+    },
+    {
+      "name": "slf4j-api-2.0.17.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar",
+      "sha256": "7b751d952061954d5abfed7181c1f645d336091b679891591d63329c622eb832"
+    },
+    {
+      "name": "ksoup-jvm-0.2.6.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/fleeksoft/ksoup/ksoup-jvm/0.2.6/ksoup-jvm-0.2.6.jar",
+      "sha256": "ec9c20bc08d0cb28293a38580c6fb107521b4fdb781c1251a3fdd0a7e8ff1f92"
+    },
+    {
+      "name": "io-core-jvm-0.0.8.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/fleeksoft/io/io-core-jvm/0.0.8/io-core-jvm-0.0.8.jar",
+      "sha256": "c3091155ee3acd8ff3a8274e52baf0f8e200cbad2fd440a121943bfceb7dc1f0"
+    },
+    {
+      "name": "charset-jvm-0.0.8.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/fleeksoft/charset/charset-jvm/0.0.8/charset-jvm-0.0.8.jar",
+      "sha256": "0e316c317627280c253372e1c2bc5f0370992f3cfaa26b766eed7572439d9e3b"
+    },
+    {
+      "name": "stately-concurrency-jvm-2.1.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/co/touchlab/stately-concurrency-jvm/2.1.0/stately-concurrency-jvm-2.1.0.jar",
+      "sha256": "86739675892fb1c17d6bd36d05347e89ff313957421bb01a45a743ce774e8e29"
+    },
+    {
+      "name": "stately-strict-jvm-2.1.0.jar",
+      "url": "https://repo.maven.apache.org/maven2/co/touchlab/stately-strict-jvm/2.1.0/stately-strict-jvm-2.1.0.jar",
+      "sha256": "581070db2802cbad81f6e6e2d9d2494835443153b314458d53aa43c68260c9fa"
+    },
+    {
+      "name": "kotlinx-io-core-jvm-0.8.2.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-io-core-jvm/0.8.2/kotlinx-io-core-jvm-0.8.2.jar",
+      "sha256": "610770cc855edf1c57d9fcd7c69fd040af57adaf8834505f91805de680783d13"
+    },
+    {
+      "name": "kotlinx-io-bytestring-jvm-0.8.2.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-io-bytestring-jvm/0.8.2/kotlinx-io-bytestring-jvm-0.8.2.jar",
+      "sha256": "3da805e9da2ff3cb119f744dcd11de6a18e32a5b933518f17418ba5795cfa775"
+    },
+    {
+      "name": "JsBindings.kt",
+      "url": "https://raw.githubusercontent.com/tapframe/NuvioStreaming/db0c50b503039863909c86405907462bf1752193/composeApp/src/fullCommonMain/kotlin/com/nuvio/app/features/plugins/runtime/js/JsBindings.kt",
+      "sha256": "a60e4ec5e783b148ea7a5e007671c92e05eebffe45cfc5c45cf271772c3bcad3"
+    },
+    {
+      "name": "UrlBridge.kt",
+      "url": "https://raw.githubusercontent.com/tapframe/NuvioStreaming/db0c50b503039863909c86405907462bf1752193/composeApp/src/fullCommonMain/kotlin/com/nuvio/app/features/plugins/runtime/network/UrlBridge.kt",
+      "sha256": "1e81c31757e004306c9a8dc0538679323d6a7fd866be97d6dae76547f23b2e9e"
+    },
+    {
+      "name": "DomBridge.kt",
+      "url": "https://raw.githubusercontent.com/tapframe/NuvioStreaming/db0c50b503039863909c86405907462bf1752193/composeApp/src/fullCommonMain/kotlin/com/nuvio/app/features/plugins/runtime/dom/DomBridge.kt",
+      "sha256": "af78b9e7f6f42abbf4513f71ef950f5381dc853dbe78778519760eadbf03cac7"
+    },
+    {
+      "name": "HostApiRegistry.kt",
+      "url": "https://raw.githubusercontent.com/tapframe/NuvioStreaming/db0c50b503039863909c86405907462bf1752193/composeApp/src/fullCommonMain/kotlin/com/nuvio/app/features/plugins/runtime/host/HostApiRegistry.kt",
+      "sha256": "35a41b50639b7520afd7e3f96b76aab4aa5f38bf5e5a3597d7212208199ff20d"
+    }
+  ]
+}

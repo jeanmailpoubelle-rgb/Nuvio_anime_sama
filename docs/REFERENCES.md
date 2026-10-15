@@ -117,3 +117,29 @@ The adapter preserves the native transport while decoding binary only on demand.
 Cinemeta's One Piece metadata was 1,358,974 text characters during investigation,
 exceeding the app's 1 MiB body limit; complete early metadata/season entries are
 read without treating a clipped tail as a complete JSON document.
+
+## Exact native bridge regression (1.0.2)
+
+The user's installed/enabled 1.0.1 opened settings but returned no sources. Running
+the exact 0.5.9 `UrlBridge.kt` with **Ktor 3.4.1** reproduced its empty query and
+fragment as `?` and `#`; base URL validation failed before the first HTTP request.
+This was missed by the earlier Node-backed URL harness. The bridge source, not a
+browser URL approximation, is now part of the optional JVM verification.
+
+`test/native-jvm/dependencies.json` pins source/artifact URLs and SHA-256 checksums.
+The harness uses dokar3 quickjs-kt **1.0.15**, Ksoup **0.2.6**, the exact URL/DOM
+bridges and the complete `JsBindings.kt` startup/settings/call source. Only HTTP
+is adapted to Node so the cloud's inherited proxy/CA configuration is respected.
+The shared JS regression bridge now also emits Ktor's empty markers.
+
+The same runtime showed that native evaluation waits for canceled timer sleeps.
+The plugin's shared short-sleep scheduler removes that avoidable post-result wait.
+Settings fields were checked against `PluginSettingsDialog.kt`: boolean controls
+must use `toggle`, not `switch`.
+
+The user's Nuvio catalog endpoint was verified directly:
+https://catalog.nuvio.tv/meta/series/tmdb:37854.json
+and https://catalog.nuvio.tv/meta/series/tt0388629.json returned the same One Piece
+identity and episode list. Both now share a single keyless metadata path. Episode
+entries come from that response; source group ranges and language slots still come
+from the authoritative Anime-Sama parser.

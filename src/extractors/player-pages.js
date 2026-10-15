@@ -75,6 +75,6 @@ function normalizeEmbed(url) {
   if (label === 'Vidmoly' && path.startsWith('/w/')) path = '/embed-'+path.slice(3)+'.html';
   else if (label === 'StreamWish') path = path.replace(/^\/(?:e|f)\//,'/');
   else if (label === 'Smoothpre') path = path.replace(/^\/(?:d|download|file|f)\//,'/v/');
-  return u.origin+path+u.search;
+  return u.origin+path+(u.search === '?' ? '' : u.search);
 }
 module.exports = { sources, redirect, hostName, quality, normalizeEmbed };

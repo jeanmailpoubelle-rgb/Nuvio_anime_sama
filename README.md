@@ -154,11 +154,13 @@ See [actual sanitized examples and performance](docs/PERFORMANCE.md).
 
 ## Native catalog matching
 
-Version **1.0.1** accepts TMDB, IMDb and Kitsu anime-catalog IDs, including episode
+Version **1.0.2** accepts TMDB, IMDb and Kitsu anime-catalog IDs, including episode
 suffixes. No manual mapping or hosted addon is required for ordinary catalog use.
-TMDB requests use Nuvio's injected key when available and fall back to public TMDB
-metadata if that key is absent or rejected. IMDb uses public Cinemeta metadata;
-Kitsu uses its public anime metadata. No API key is bundled.
+TMDB/IMDb identities use the public [Nuvio Catalog](https://catalog.nuvio.tv/configure)
+metadata endpoint, supplying title and season episodes together in one request.
+This works with that addon installed, including its localized configurations.
+If the service is unavailable, the resolver falls back to TMDB API/public metadata
+or Cinemeta. Kitsu uses its public anime metadata. No API key is bundled.
 
 Matching checks source titles **and the site's own aliases**, with compatible years.
 Published episode numbers and declared saga ranges map continuous anime numbering;
@@ -167,10 +169,18 @@ Missing versions remain unavailable, and ambiguous groups still fail safely.
 Complex season splits can use an explicit mapping below.
 
 After upgrading, open **Settings → Plugins**, refresh this repository and confirm
-**Anime-Sama 1.0.1** is enabled, then reopen the episode. Repository tabs on the
+**Anime-Sama 1.0.2** is enabled, then reopen the episode. Repository tabs on the
 stream screen only appear when that repository returns streams. If links remain
 missing, enable **Diagnostic** in Anime-Sama's plugin settings to log the catalog ID,
 matching stages and failure codes without signed links or credentials.
+
+Versions 1.0.0/1.0.1 rejected the native URL bridge's empty `?` and `#` markers as
+an invalid website address, before issuing any network request. Version 1.0.2
+fixes this startup failure. Its regression check runs the exact pinned Nuvio URL
+and DOM bridges in Kotlin QuickJS, as well as the deterministic JS tests.
+The settings diagnostic toggle is now rendered correctly. Nuvio's **Tester le
+fournisseur** uses The Matrix (TMDB 603), so zero streams there is expected for an
+anime provider; verify with an actual anime episode.
 
 One Piece S1 E1 VOSTFR is live verified through the automatic native path. Its
 published VF episode-1 players returned HTTP 404 during that check; select VOSTFR
@@ -211,11 +221,17 @@ and no injected key in QuickJS with the Nuvio 0.5.9-compatible bridge.
 ```sh
 npm run check                 # build + lint + deterministic tests
 npm run test:live -- --output docs/LIVE-VERIFICATION.json
-npm run test:native:live -- --output docs/NATIVE-VERIFICATION-1.0.1.json
+npm run test:native:live -- --output docs/NATIVE-VERIFICATION-1.0.2.json
+npm run test:native:jvm -- --output docs/NATIVE-JVM-VERIFICATION-1.0.2.json
 npm audit --omit=dev
 ```
 
-The live command performs real upstream HTTP requests and bounded media samples.
+The JVM test additionally requires Java 21 and Python 3. It downloads checksum-pinned
+Kotlin/runtime dependencies and Nuvio source snapshots into ignored `.tmp/`.
+It measures full native evaluation through callback completion and closes each
+native runtime. No personal server is needed to install or use the plugin.
+
+The live commands perform real upstream HTTP requests and bounded media samples.
 It reports counts/timings/metadata without signed URLs or private state. Reports
 are evidence of HTTP access, not Android/iOS device playback. Tests execute the
 actual generated bundle in QuickJS with a pinned snapshot of Nuvio's runtime
@@ -225,7 +241,8 @@ polyfills, including its constrained Cheerio bridge.
 - [CloudStream reuse and pinned references](docs/REFERENCES.md)
 - [Performance, examples and known limitations](docs/PERFORMANCE.md)
 - [Sanitized live HTTP results](docs/LIVE-VERIFICATION.json)
-- [Fresh-install native verification](docs/NATIVE-VERIFICATION-1.0.1.json)
+- [Current native JVM verification](docs/NATIVE-JVM-VERIFICATION-1.0.2.json)
+- [Reproduced 1.0.1 startup failure](docs/NATIVE-JVM-REGRESSION-1.0.1.json)
 
 Source: [`src/`](src/). Generated installable artifact:
 [`providers/anime-sama.js`](providers/anime-sama.js). CI verifies it matches source.

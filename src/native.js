@@ -2,6 +2,7 @@ const { AnimeSamaProvider } = require('./provider');
 const { defaults } = require('./config');
 const Id = require('./ids');
 const Catalog = require('./catalog-context');
+const {version:pluginVersion} = require('../package.json');
 function clean(value) { return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
 function failure(code) { return Object.assign(new Error(code),{code}); }
 function nativeProvider(settings) {
@@ -126,6 +127,7 @@ async function resolveSelection(provider,id,type,season,episode,settings,key) {
 async function getStreams(tmdbId,mediaType,season,episode) {
   try {
     const settings = typeof SCRAPER_SETTINGS === 'undefined' ? {} : SCRAPER_SETTINGS;
+    console.info('[Anime-Sama]',pluginVersion,'getStreams',Catalog.nativeId(tmdbId) || 'source/unsupported ID',mediaType,season,episode);
     const provider = nativeProvider(settings);
     if (String(tmdbId).startsWith('as:ep:')) return (await provider.streams(tmdbId)).streams;
     const id = Catalog.nativeId(tmdbId), type = ['tv','series','show','anime'].includes(mediaType) ? 'tv' : mediaType;
@@ -142,10 +144,11 @@ async function getStreams(tmdbId,mediaType,season,episode) {
 }
 function onSettings() {
   return [
+    {type:'info',label:`Anime-Sama ${pluginVersion} · Métadonnées Nuvio Catalog. Le test de fournisseur Nuvio utilise Matrix (non disponible sur Anime-Sama) : tester avec un véritable épisode animé.`},
     {type:'text',key:'animeSamaBaseUrl',label:'Adresse du site Anime-Sama',placeholder:defaults.animeSamaBaseUrl,description:'Laisser vide pour utiliser la configuration du plugin.'},
     {type:'select',key:'version',label:'Version',defaultValue:defaults.version,options:[{label:'Toutes les versions',value:'all'},{label:'VOSTFR',value:'vostfr'},{label:'VF',value:'vf'}]},
     {type:'text',key:'sourceMap',label:'Correspondances TMDB (JSON)',description:'Correspondances personnalisées facultatives pour des cas ambigus. Voir le README.'},
-    {type:'switch',key:'diagnostics',label:'Diagnostic',defaultValue:false,description:'Journaliser les étapes et les causes des liens manquants, sans URL signée ni clé API.'}
+    {type:'toggle',key:'diagnostics',label:'Diagnostic',defaultValue:false,description:'Journaliser les étapes et les causes des liens manquants, sans URL signée ni clé API.'}
   ];
 }
 module.exports = { getStreams, onSettings, resolveSelection, clean, sourceTitle, chooseCatalogEpisode, episodeReferences };

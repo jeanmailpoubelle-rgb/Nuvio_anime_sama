@@ -1,5 +1,6 @@
 const { abortError } = require('./concurrency');
 const {runtimeFetch} = require('./runtime-fetch');
+const {setTimer,clearTimer} = require('./timers');
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 class HttpError extends Error { constructor(status) { super(`HTTP ${status}`); this.status = status; } }
 class HttpClient {
@@ -46,13 +47,13 @@ class HttpClient {
     // the returned result; Node/browser transports additionally cancel the request.
     const stopped = new Promise((_resolve,reject) => {
       const stop = () => { controller.abort(); reject(options.signal?.aborted ? abortError() : Object.assign(new Error('Request timed out.'),{code:'TIMEOUT'})); };
-      timer = setTimeout(stop,options.timeoutMs || this.config.requestTimeoutMs);
+      timer = setTimer(stop,options.timeoutMs || this.config.requestTimeoutMs);
       listener = stop;
       options.signal?.addEventListener('abort',listener);
     });
     try { return await Promise.race([job(),stopped]); }
     finally {
-      clearTimeout(timer); options.signal?.removeEventListener('abort',listener);
+      clearTimer(timer); options.signal?.removeEventListener('abort',listener);
       if (metrics) metrics.networkMs += Date.now()-started;
     }
   }

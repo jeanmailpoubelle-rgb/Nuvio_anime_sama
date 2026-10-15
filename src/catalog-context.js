@@ -1,4 +1,5 @@
 const cheerio = require('cheerio');
+const NUVIO_CATALOG_URL = 'https://catalog.nuvio.tv';
 function nativeId(value) {
   const kitsu = /^(?:kitsu|kitsu-anime)[:/](\d+)(?=[:/]|$)/i.exec(String(value || '').trim());
   if (kitsu) return 'kitsu:'+kitsu[1];
@@ -106,6 +107,18 @@ async function titleContext(provider,id,type,key = '',season = 1) {
       first_air_date:attributes.startDate,release_date:attributes.startDate,kind:attributes.subtype === 'movie' ? 'movie':'tv',
       sourceSeason:seasonName ? Number(seasonName[1] || seasonName[2]):undefined,absolute:true};
   }
+  // Resolve against the same public metadata used by Nuvio Catalog. One request
+  // supplies both identity and episode numbers, without app keys or HTML scraping.
+  try {
+    const catalogId = id.startsWith('tt') ? id : 'tmdb:'+id;
+    const r = await provider.http.request(`${NUVIO_CATALOG_URL}/meta/${type === 'tv' ? 'series':'movie'}/${catalogId}.json`,{category:'mapping'});
+    const meta = cinemetaMeta(r.body,season);
+    if (!meta?.name || !Array.isArray(meta.genres) || (type === 'tv' && !meta.catalogEpisodes?.length)) throw new Error('Incomplete catalog metadata.');
+    return {name:meta.name,title:meta.name,aliases:meta.aliases || [],
+      genres:meta.genres.map(name => ({name,id:/^animation$/i.test(name)?16:undefined})),
+      first_air_date:meta.released || meta.releaseInfo,release_date:meta.released || meta.releaseInfo,
+      catalogEpisodes:meta.catalogEpisodes,absoluteOffset:meta.absoluteOffset};
+  } catch (_error) { /* Isolated fallback for catalog outages or unsupported identities. */ }
   if (id.startsWith('tt')) {
     const r = await provider.http.request(`https://v3-cinemeta.strem.io/meta/${type === 'tv' ? 'series':'movie'}/${id}.json`,{category:'mapping'});
     const meta = cinemetaMeta(r.body,season);
@@ -122,6 +135,7 @@ async function titleContext(provider,id,type,key = '',season = 1) {
 }
 async function seasonContext(provider,id,season,key = '',metadata) {
   if (id.startsWith('kitsu:')) return {absolute:true};
+  if (metadata?.catalogEpisodes?.length) return {episodes:metadata.catalogEpisodes,absoluteOffset:metadata.absoluteOffset};
   if (id.startsWith('tt')) {
     const episodes = metadata?.catalogEpisodes || [];
     if (!episodes.length) throw Object.assign(new Error('IMDb catalog season unavailable.'),{code:'SEASON_UNAVAILABLE'});

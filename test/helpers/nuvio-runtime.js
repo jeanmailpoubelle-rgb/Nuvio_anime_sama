@@ -5,7 +5,8 @@ const cheerio = require('cheerio');
 async function runNative(settings,args,routes,options = {}) {
   const QuickJS=await getQuickJS(),vm=QuickJS.newContext(),runtime=vm.runtime;
   const docs=new Map(),elements=new Map(),timers=new Set(),deferreds=new Set(),calls=[];
-  let serial=0,captured,closed=false;
+  let serial=0,captured,closed=false,pendingFetches=0,resultAt;
+  const started=Date.now();
   const logs=[];
   function register(name,fn) {
     const handle=vm.newFunction(name,(...handles)=>vm.newString(String(fn(...handles.map(h=>vm.dump(h))))));
@@ -14,7 +15,7 @@ async function runNative(settings,args,routes,options = {}) {
   function nodes(list) {
     return JSON.stringify(list.map(el=>{const id=String(++serial);elements.set(id,el);return id;}));
   }
-  register('__parse_url',raw=>{const u=new URL(raw);return JSON.stringify({protocol:u.protocol,host:u.host,hostname:u.hostname,port:u.port,pathname:u.pathname,search:u.search,hash:u.hash});});
+  register('__parse_url',raw=>{const u=new URL(raw);return JSON.stringify({protocol:u.protocol,host:u.host,hostname:u.hostname,port:u.port,pathname:u.pathname,search:u.search || '?',hash:u.hash || '#'});});
   register('__cheerio_load',html=>{const id=String(++serial);docs.set(id,cheerio.load(html));return id;});
   register('__cheerio_select',(doc,selector)=>nodes(docs.get(doc)(selector).toArray()));
   register('__cheerio_find',(doc,id,selector)=>nodes(docs.get(doc)(elements.get(id)).find(selector).toArray()));
@@ -23,7 +24,7 @@ async function runNative(settings,args,routes,options = {}) {
   register('__cheerio_html',(doc,id)=>id?docs.get(doc).html(elements.get(id)):docs.get(doc).html());
   register('__cheerio_attr',(doc,id,key)=>docs.get(doc)(elements.get(id)).attr(key)??'__UNDEFINED__');
   register('__cheerio_next',(doc,id)=>{const n=docs.get(doc)(elements.get(id)).next().get(0);if(!n)return '__NONE__';const next=String(++serial);elements.set(next,n);return next;});
-  register('__capture_result',value=>{captured=JSON.parse(value);return '';});
+  register('__capture_result',value=>{captured=JSON.parse(value);resultAt=Date.now();return '';});
   for(const name of ['log','info','warn','error'])register('__console_'+name,(...args)=>{logs.push(args.join(' '));return '';});
   const sleep=vm.newFunction('__plugin_sleep',ms=>{
     const d=vm.newPromise();deferreds.add(d);
@@ -32,6 +33,7 @@ async function runNative(settings,args,routes,options = {}) {
   const fetch=vm.newFunction('__native_fetch',(url,method,headers)=>{
     if (closed) return vm.newString(JSON.stringify({ok:false,status:0,body:'',bodyBase64:'',headers:{}}));
     const d=vm.newPromise();deferreds.add(d);
+    pendingFetches++;
     const u=vm.dump(url),methodValue=vm.dump(method),headerValue=JSON.parse(vm.dump(headers));calls.push({url:u,method:methodValue,headers:headerValue});
     Promise.resolve().then(async () => {
       if (options.fetch) return options.fetch(u,methodValue,headerValue);
@@ -43,7 +45,7 @@ async function runNative(settings,args,routes,options = {}) {
     },()=>{
       if (closed) return;
       const value=vm.newString(JSON.stringify({ok:false,status:0,url:u,body:'',bodyBase64:'',headers:{}}));d.resolve(value);value.dispose();
-    });
+    }).finally(()=>{pendingFetches--;});
     return d.handle.dup();
   });vm.setProp(vm.global,'__native_fetch',fetch);fetch.dispose();
   function evaluate(code) {
@@ -53,8 +55,9 @@ async function runNative(settings,args,routes,options = {}) {
   try {
     evaluate(`var console={log:__console_log,info:__console_info,warn:__console_warn,error:__console_error};var SCRAPER_SETTINGS=${JSON.stringify(settings)};var TMDB_API_KEY=${JSON.stringify(options.key || '')};var module={exports:{}};`);
     evaluate(fs.readFileSync(__dirname+'/../fixtures/nuvio-polyfills.txt','utf8'));
-    evaluate(fs.readFileSync(__dirname+'/../../providers/anime-sama.js','utf8'));
-    evaluate(`module.exports.getStreams(...${JSON.stringify(args)}).then(function(v){__capture_result(JSON.stringify(v));},function(e){__capture_result(JSON.stringify({error:e.message}));});`);
+    evaluate('(function(){\n'+fs.readFileSync(__dirname+'/../../providers/anime-sama.js','utf8')+'\n})();');
+    const call=options.settingsLayout ? 'module.exports.onSettings()' : `module.exports.getStreams(...${JSON.stringify(args)})`;
+    evaluate(`Promise.resolve(${call}).then(function(v){__capture_result(JSON.stringify(v));},function(e){__capture_result(JSON.stringify({error:e.message}));});`);
     const until=Date.now()+(options.budgetMs || 5000);
     while(captured===undefined&&Date.now()<until) {
       const jobs=runtime.executePendingJobs();
@@ -62,7 +65,17 @@ async function runNative(settings,args,routes,options = {}) {
       await new Promise(r=>setTimeout(r,1));
     }
     assert.notEqual(captured,undefined,'QuickJS plugin must complete');
-    return {streams:captured,calls,logs};
+    // dokar3's evaluate awaits native callbacks as well as the captured JS value.
+    // Keep the host sleeps alive to catch canceled long-timer tail latency.
+    if (options.drainNative) {
+      while((timers.size || pendingFetches) && Date.now()<until) {
+        const jobs=runtime.executePendingJobs();
+        if(jobs.error){const e=vm.dump(jobs.error);jobs.error.dispose();throw new Error(JSON.stringify(e));}
+        await new Promise(r=>setTimeout(r,1));
+      }
+      assert.equal(timers.size+pendingFetches,0,'Native host work must settle');
+    }
+    return {streams:captured,calls,logs,resultReadyMs:resultAt-started,runtimeDrainMs:Date.now()-resultAt};
   } finally {
     closed=true;
     for(const timer of timers)clearTimeout(timer);

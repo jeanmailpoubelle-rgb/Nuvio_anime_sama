@@ -6,8 +6,45 @@ extraction and playback validation. They exclude opening metadata beforehand and
 the separate media segment sample. Network location, signed URLs, remote load and
 the success collection window affect each run; these are samples, not guarantees.
 
-## Native default-install verification (1.0.1)
+## Exact native bridge verification (1.0.2)
 
+The user's 1.0.1 installation loaded settings but issued no stream requests.
+The exact Nuvio 0.5.9 Kotlin URL bridge reproduced that failure: empty query and
+fragment strings become `?` and `#`, causing the old base validation to reject
+the default address. Replaying the committed 1.0.1 artifact under that bridge
+returned **0 requests and 0 streams** in all four cases. See
+[`NATIVE-JVM-REGRESSION-1.0.1.json`](NATIVE-JVM-REGRESSION-1.0.1.json).
+
+Version 1.0.2 was then checked with dokar3 QuickJS 1.0.15, exact Nuvio startup/URL/DOM
+source, Ktor/Ksoup, real HTTP, empty settings, no key, and full runtime completion:
+
+| Native S1E1 selection | Resolve time (ms) | Streams | Requests | After-result wait (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| One Piece TMDB | 5000 | 1 | 12 | 82 |
+| One Piece IMDb | 3508 | 1 | 12 | 79 |
+| One Piece Kitsu | 3711 | 1 | 12 | 78 |
+| Jujutsu Kaisen TMDB | 6163 | 3 | 27 | 1177 |
+
+Each case additionally retrieved an HTTP 206, 4096-byte media segment. Each JVM
+runtime closed successfully. See
+[`NATIVE-JVM-VERIFICATION-1.0.2.json`](NATIVE-JVM-VERIFICATION-1.0.2.json).
+This runs native QuickJS on Linux/JVM with Node HTTP, not phone playback.
+
+Nuvio Catalog now supplies title and season episodes in one request; the One Piece
+TMDB path saves a separate season metadata request. Kitsu retains its direct path.
+Canceled six/eleven-second native timer sleeps previously held evaluation open:
+a preliminary browser-URL-adapted One Piece test captured a stream at 6131 ms but
+did not finish until 15780 ms. Shared sleeps of at most 100 ms remove that timer
+tail. In-flight native HTTP cannot be canceled through Nuvio's JS AbortSignal and
+can still hold evaluation open: the separate WASM Jujutsu sample had a 5854 ms
+after-result wait for HTTP. This is reported, not counted as fast completion.
+
+## Earlier WASM default-install verification (1.0.1)
+
+These historical WASM measurements used a Node-backed URL bridge that incorrectly
+modeled empty native query/fragment markers. They establish extraction behavior
+in that harness, **not compatibility with the installed 1.0.1 native plugin**.
+The exact-bridge reproduction above supersedes that compatibility claim.
 The original report below tested native resolution through an explicit mapping.
 After the missing-stream report, the **actual automatic native entry** was tested
 with empty settings, no injected key and no source map in QuickJS using the 0.5.9
@@ -31,7 +68,16 @@ bounded binary prefixes. Network variability and WASM overhead limit this compar
 it is not a timing guarantee for a phone. Worker lifetimes do not validate runtime
 teardown or actual native device playback; see ARCHITECTURE.md for that scope.
 
-## Live results
+## General extraction regression (1.0.2)
+
+`npm run test:live` passed again after the native fix: Jujutsu S1 VF/VOSTFR and
+S3, One Piece saga 2, One Piece's first film, Your Name and Akashic Records E1
+all returned working streams with HTTP 206 segment samples. The known-dead Akashic
+E2 remained unavailable. Concurrent VF/VOSTFR resolutions returned 3/5 streams
+in 2303 ms, and the complete HTTP catalog → metadata → stream flow returned
+one title, 60 videos and five streams. The unchanged Node fast path remains healthy.
+
+## Initial live results (1.0.0)
 
 | Test | Players | Successful streams | Resolve time (ms) | Requests |
 | --- | ---: | ---: | ---: | ---: |
@@ -120,8 +166,9 @@ stream(episodeId)
   → preserve headers/version/known metadata; deduplicate; return
 ```
 
-An explicit native source map uses the same path. Automatic native TMDB matching
-adds necessary title/season verification before extraction. Episode data it just
+An explicit native source map uses the same path. Automatic native TMDB/IMDb matching
+first loads one Nuvio Catalog response containing identity and season episodes;
+fallback services are only contacted if it fails. Episode data it just
 fetched is reused for up to five seconds within that invocation, eliminating a
 duplicate script fetch; it is never a cache of signed media. The addon fast path
 never makes a TMDB or metadata request.
@@ -150,9 +197,9 @@ works; no retry sleeps or whole-media downloads are used.
 - **Subtitles:** real JWPlayer captions are covered by deterministic fixtures;
   the sampled source streams had no downloadable subtitle tracks. Burned-in
   VOSTFR is represented as edition metadata only.
-- **Automatic native catalog matching:** the original v1.0.0 report above used an
-  explicit mapping. Version 1.0.1 separately tests fresh-install automatic TMDB,
-  IMDb and Kitsu inputs without a key; see `NATIVE-VERIFICATION-1.0.1.json`.
+- **Automatic native catalog matching:** 1.0.2 verifies fresh-install TMDB/IMDb/Kitsu
+  inputs using the actual Kotlin URL/DOM bridges; earlier browser-URL-adapted WASM
+  checks missed the 1.0.1 startup failure. See the current JVM report above.
   Ambiguous season splits and remakes can still require explicit mappings.
 - Actual Android/iOS playback, casting, external players and Docker image execution
   were not tested. QuickJS/HTTP tests do not establish device playback.

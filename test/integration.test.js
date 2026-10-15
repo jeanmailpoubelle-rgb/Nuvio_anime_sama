@@ -50,6 +50,8 @@ test('automatic native matching preserves published episodes when catalog counts
 test('native plugin fails soft on unsupported IDs and publishes editable settings',async()=>{
   assert.deepEqual(await getStreams('not-a-tmdb-id','tv',1,1),[]);
   assert.equal(onSettings().find(f=>f.key==='animeSamaBaseUrl').type,'text');
+  assert.equal(onSettings().find(f=>f.key==='diagnostics').type,'toggle');
+  assert.ok(onSettings().every(f=>['info','header','text','select','toggle'].includes(f.type)));
   const m=require('../manifest.json');assert.equal(m.scrapers[0].hasSettings,true);assert.equal(m.scrapers[0].filename,'providers/anime-sama.js');
 });
 test('HTTP addon serves discovery/metadata/streams and native plugin files as different contracts',async t=>{
