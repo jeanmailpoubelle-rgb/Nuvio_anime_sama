@@ -152,14 +152,30 @@ Known source VF implies French audio; VOSTFR establishes French subtitle edition
 subtitle files. Unknown quality, audio, codec, HDR and subtitle tracks are omitted.
 See [actual sanitized examples and performance](docs/PERFORMANCE.md).
 
-## Native TMDB mapping
+## Native catalog matching
 
-The addon uses direct Anime-Sama identities and needs no TMDB API key. For native
-TMDB requests, the plugin uses Nuvio's injected `TMDB_API_KEY`; no key is bundled.
-Automatic matching requires an animation title, exact normalized title/alias,
-compatible year, the requested source `saisonN`, matching episode count and source
-numbering starting at 1. Ambiguous matches return no stream. Source saga ordering
-is not assumed to equal TMDB season ordering.
+Version **1.0.1** accepts TMDB, IMDb and Kitsu anime-catalog IDs, including episode
+suffixes. No manual mapping or hosted addon is required for ordinary catalog use.
+TMDB requests use Nuvio's injected key when available and fall back to public TMDB
+metadata if that key is absent or rejected. IMDb uses public Cinemeta metadata;
+Kitsu uses its public anime metadata. No API key is bundled.
+
+Matching checks source titles **and the site's own aliases**, with compatible years.
+Published episode numbers and declared saga ranges map continuous anime numbering;
+a source/catalog count difference does not discard episodes that actually exist.
+Missing versions remain unavailable, and ambiguous groups still fail safely.
+Complex season splits can use an explicit mapping below.
+
+After upgrading, open **Settings → Plugins**, refresh this repository and confirm
+**Anime-Sama 1.0.1** is enabled, then reopen the episode. Repository tabs on the
+stream screen only appear when that repository returns streams. If links remain
+missing, enable **Diagnostic** in Anime-Sama's plugin settings to log the catalog ID,
+matching stages and failure codes without signed links or credentials.
+
+One Piece S1 E1 VOSTFR is live verified through the automatic native path. Its
+published VF episode-1 players returned HTTP 404 during that check; select VOSTFR
+or Toutes les versions to use the working edition. The plugin never switches a
+VF-only selection to VOSTFR silently.
 
 For deterministic, faster native resolution, enter a **Correspondances TMDB (JSON)**
 setting. This path skips TMDB, search, details and season discovery entirely:
@@ -186,15 +202,16 @@ setting. This path skips TMDB, search, details and season discovery entirely:
 For TV, array index = requested episode − 1 + `indexOffset`. For movies, `index`
 is zero-based. Paths identify groups **without** a trailing language. These are
 explicit source mappings, so verify their ordering when adding a saga or film.
-The included Jujutsu S1 binding was live tested; automatic TMDB matching was tested
-with deterministic responses, not a borrowed API key. Missing TMDB credentials
-require a mapping or the addon.
+Explicit Jujutsu S1 mapping and automatic One Piece/Jujutsu matching have separate
+live checks. The native verification runs with empty settings, no manual mapping
+and no injected key in QuickJS with the Nuvio 0.5.9-compatible bridge.
 
 ## Development and verification
 
 ```sh
 npm run check                 # build + lint + deterministic tests
 npm run test:live -- --output docs/LIVE-VERIFICATION.json
+npm run test:native:live -- --output docs/NATIVE-VERIFICATION-1.0.1.json
 npm audit --omit=dev
 ```
 
@@ -208,6 +225,7 @@ polyfills, including its constrained Cheerio bridge.
 - [CloudStream reuse and pinned references](docs/REFERENCES.md)
 - [Performance, examples and known limitations](docs/PERFORMANCE.md)
 - [Sanitized live HTTP results](docs/LIVE-VERIFICATION.json)
+- [Fresh-install native verification](docs/NATIVE-VERIFICATION-1.0.1.json)
 
 Source: [`src/`](src/). Generated installable artifact:
 [`providers/anime-sama.js`](providers/anime-sama.js). CI verifies it matches source.

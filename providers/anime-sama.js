@@ -161,10 +161,41 @@ var require_cache = __commonJS({
   }
 });
 
+// src/runtime-fetch.js
+var require_runtime_fetch = __commonJS({
+  "src/runtime-fetch.js"(exports2, module2) {
+    function nativeFetch(call, url, options = {}) {
+      return Promise.resolve(call(url, (options.method || "GET").toUpperCase(), JSON.stringify(options.headers || {}), "none", "", true)).then((raw) => {
+        const data = JSON.parse(raw), headers = {};
+        for (const [key, value] of Object.entries(data.headers || {})) headers[key.toLowerCase()] = value;
+        return {
+          ok: data.ok,
+          status: data.status,
+          url: data.url || url,
+          headers: { get: (name) => headers[name.toLowerCase()] || null },
+          text: () => Promise.resolve(data.body || ""),
+          arrayBuffer: (maxBytes) => {
+            const encoded = data.bodyBase64 || "";
+            const bounded = Number.isFinite(maxBytes) ? encoded.slice(0, Math.ceil(maxBytes / 3) * 4) : encoded;
+            const binary = atob(bounded), bytes = new Uint8Array(Number.isFinite(maxBytes) ? Math.min(binary.length, maxBytes) : binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return Promise.resolve(bytes.buffer);
+          }
+        };
+      });
+    }
+    function runtimeFetch(fallback) {
+      return typeof __native_fetch === "function" ? (url, options) => nativeFetch(__native_fetch, url, options) : fallback;
+    }
+    module2.exports = { nativeFetch, runtimeFetch };
+  }
+});
+
 // src/http.js
 var require_http = __commonJS({
   "src/http.js"(exports2, module2) {
     var { abortError } = require_concurrency();
+    var { runtimeFetch } = require_runtime_fetch();
     var USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
     var HttpError = class extends Error {
       constructor(status) {
@@ -175,7 +206,7 @@ var require_http = __commonJS({
     var HttpClient = class {
       constructor(config, fetchImpl = fetch) {
         this.config = config;
-        this.fetch = fetchImpl;
+        this.fetch = fetchImpl === fetch ? runtimeFetch(fetchImpl) : fetchImpl;
       }
       request(_0) {
         return __async(this, arguments, function* (url, options = {}, metrics) {
@@ -220,7 +251,7 @@ var require_http = __commonJS({
               }
               body = options.binary ? bytes : new TextDecoder().decode(bytes);
             } else {
-              body = options.binary ? new Uint8Array(yield response.arrayBuffer()) : yield response.text();
+              body = options.binary ? new Uint8Array(yield response.arrayBuffer(options.prefix ? limit : void 0)) : yield response.text();
               if (body.length > limit && !options.prefix) throw new Error("Response too large.");
               body = body.slice(0, limit);
             }
@@ -451,7 +482,7 @@ var require_pages = __commonJS({
         const image = a.find("img.card-image, img:not(.flag-icon)").first();
         if (!title || !image.length) return;
         const raw = image.attr("data-src") || image.attr("src");
-        out.push({ path, title, poster: U.absolute(raw, base) });
+        out.push({ path, title, aliases: unique(a.find(".card-text, .card-alters, .card-title-alt").first().text().split(",").map((s) => s.trim()).filter(Boolean)), poster: U.absolute(raw, base) });
       });
       return out.filter((item, i) => out.findIndex((other) => other.path === item.path) === i);
     }
@@ -505,6 +536,7 @@ var require_pages = __commonJS({
       return {
         path: root,
         title,
+        aliases: unique($("#titreAlter").text().split(",").map((s) => s.trim()).filter(Boolean)),
         poster: U.absolute($('meta[property="og:image"]').attr("content"), base),
         plot: $("#synopsisText").text().trim() || $('meta[name="description"]').attr("content"),
         year,
@@ -1258,31 +1290,323 @@ var require_provider = __commonJS({
   }
 });
 
+// src/catalog-context.js
+var require_catalog_context = __commonJS({
+  "src/catalog-context.js"(exports2, module2) {
+    var cheerio = require("cheerio");
+    function nativeId(value) {
+      const kitsu = /^(?:kitsu|kitsu-anime)[:/](\d+)(?=[:/]|$)/i.exec(String(value || "").trim());
+      if (kitsu) return "kitsu:" + kitsu[1];
+      const id = String(value || "").trim().replace(/^(?:tmdb|movie|series|tv)[:/]/i, "").split(/[:/]/)[0];
+      return /^(?:\d+|tt\d+)$/i.test(id) ? id.toLowerCase() : null;
+    }
+    function jsonLd(html, type) {
+      const $ = cheerio.load(html), found = [];
+      $('script[type="application/ld+json"]').each((_i, el) => {
+        try {
+          const raw = $(el).html() || "";
+          const data = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
+          const entries = data["@graph"] || [data];
+          for (const entry of entries) if ([].concat(entry["@type"] || []).includes(type === "tv" ? "TVSeries" : "Movie")) found.push(entry);
+        } catch (_error) {
+        }
+      });
+      if (found.length !== 1) throw Object.assign(new Error("Public title metadata unavailable."), { code: "METADATA_UNAVAILABLE" });
+      return { data: found[0], $ };
+    }
+    function publicTitle(html, type) {
+      const { data, $ } = jsonLd(html, type);
+      const names = [data.name, ...[].concat(data.alternateName || [])].filter((v) => typeof v === "string" && v.trim());
+      const genres = [].concat(data.genre || []).filter((v) => typeof v === "string");
+      let original;
+      $(".facts p").each((_i, el) => {
+        const text = $(el).text().trim();
+        const m = /^Original (?:Name|Title)\s+(.+)$/.exec(text);
+        if (m) original = m[1].trim();
+      });
+      if (!names.length) throw Object.assign(new Error("Public title name unavailable."), { code: "METADATA_UNAVAILABLE" });
+      const date = type === "tv" ? data.startDate : data.datePublished;
+      return {
+        name: names[0],
+        original_name: original,
+        aliases: names.slice(1),
+        genres: genres.map((name) => ({ name, id: /^animation$/i.test(name) ? 16 : void 0 })),
+        ...type === "tv" ? { first_air_date: date } : { title: names[0], release_date: date }
+      };
+    }
+    function publicSeason(html) {
+      const $ = cheerio.load(html), episodes = [];
+      $(".episode_list .episode").each((_i, el) => {
+        const row = $(el), raw = row.find(".episode_number").first().text().trim();
+        if (!/^\d+$/.test(raw)) return;
+        const episode_number = Number(raw);
+        if (episodes.some((e) => e.episode_number === episode_number)) return;
+        episodes.push({ episode_number, name: row.find(".episode_title a").first().text().trim() });
+      });
+      if (!episodes.length) throw Object.assign(new Error("Public season episodes unavailable."), { code: "SEASON_UNAVAILABLE" });
+      return { episodes };
+    }
+    function api(provider, path, key) {
+      return __async(this, null, function* () {
+        const auth = key.includes(".") ? { Authorization: `Bearer ${key}` } : {};
+        const url = "https://api.themoviedb.org/3" + path + (path.includes("?") ? "&" : "?") + (key.includes(".") ? "" : "api_key=" + encodeURIComponent(key));
+        const r = yield provider.http.request(url, { headers: auth, category: "mapping" });
+        return JSON.parse(r.body);
+      });
+    }
+    function cinemetaMeta(raw, season) {
+      const start = /^\s*\{\s*"meta"\s*:\s*\{/.exec(raw);
+      if (!start) throw Object.assign(new Error("Invalid catalog metadata."), { code: "METADATA_UNAVAILABLE" });
+      let depth = 2, quote = false, escaped = false, videos = -1, header;
+      for (let i = start[0].length; i < raw.length; i++) {
+        const ch = raw[i];
+        if (quote) {
+          if (escaped) escaped = false;
+          else if (ch === "\\") escaped = true;
+          else if (ch === '"') quote = false;
+          continue;
+        }
+        if (ch === '"') {
+          if (depth === 2 && raw.startsWith('"videos"', i)) {
+            let j = i + 8;
+            while (/\s/.test(raw[j] || "") && j < raw.length) j++;
+            if (raw[j] === ":") {
+              j++;
+              while (/\s/.test(raw[j] || "") && j < raw.length) j++;
+              if (raw[j] === "[") {
+                header = JSON.parse(raw.slice(0, i).replace(/,\s*$/, "") + "}}").meta;
+                videos = j + 1;
+                break;
+              }
+            }
+          }
+          quote = true;
+        } else if (ch === "{" || ch === "[") depth++;
+        else if (ch === "}" || ch === "]") depth--;
+      }
+      if (videos < 0) return JSON.parse(raw).meta;
+      const selected = [];
+      let offset = 0, objectStart = -1;
+      depth = 0;
+      quote = false;
+      escaped = false;
+      for (let i = videos; i < raw.length; i++) {
+        const ch = raw[i];
+        if (quote) {
+          if (escaped) escaped = false;
+          else if (ch === "\\") escaped = true;
+          else if (ch === '"') quote = false;
+          continue;
+        }
+        if (ch === '"') {
+          quote = true;
+          continue;
+        }
+        if (ch === "{") {
+          if (depth === 0) objectStart = i;
+          depth++;
+        } else if (ch === "}") {
+          depth--;
+          if (depth === 0 && objectStart >= 0) {
+            const v = JSON.parse(raw.slice(objectStart, i + 1)), number = Number(v.episode), group = Number(v.season);
+            if (group > season) break;
+            if (Number.isInteger(number) && number > 0) {
+              if (group > 0 && group < season) offset++;
+              else if (group === season) selected.push({ episode_number: number, name: v.title });
+            }
+          }
+        } else if (ch === "]" && depth === 0) break;
+      }
+      return { ...header, catalogEpisodes: selected, absoluteOffset: offset };
+    }
+    function titleContext(provider, id, type, key = "", season = 1) {
+      return __async(this, null, function* () {
+        var _a, _b;
+        if (id.startsWith("kitsu:")) {
+          const r2 = yield provider.http.request(`https://kitsu.io/api/edge/anime/${id.slice(6)}`, { category: "mapping" });
+          const attributes = (_b = (_a = JSON.parse(r2.body)) == null ? void 0 : _a.data) == null ? void 0 : _b.attributes;
+          if (!(attributes == null ? void 0 : attributes.canonicalTitle)) throw Object.assign(new Error("Kitsu catalog metadata unavailable."), { code: "METADATA_UNAVAILABLE" });
+          const aliases = [...Object.values(attributes.titles || {}), ...attributes.abbreviatedTitles || []].filter((v) => typeof v === "string");
+          const seasonName = [attributes.canonicalTitle, ...aliases].map((v) => /\b(?:season\s+(\d+)|(\d+)(?:nd|rd|th)\s+season)\b/i.exec(v)).find(Boolean);
+          return {
+            name: attributes.canonicalTitle,
+            title: attributes.canonicalTitle,
+            aliases,
+            genres: [{ id: 16, name: "Animation" }],
+            first_air_date: attributes.startDate,
+            release_date: attributes.startDate,
+            kind: attributes.subtype === "movie" ? "movie" : "tv",
+            sourceSeason: seasonName ? Number(seasonName[1] || seasonName[2]) : void 0,
+            absolute: true
+          };
+        }
+        if (id.startsWith("tt")) {
+          const r2 = yield provider.http.request(`https://v3-cinemeta.strem.io/meta/${type === "tv" ? "series" : "movie"}/${id}.json`, { category: "mapping" });
+          const meta = cinemetaMeta(r2.body, season);
+          if (!(meta == null ? void 0 : meta.name)) throw Object.assign(new Error("IMDb catalog metadata unavailable."), { code: "METADATA_UNAVAILABLE" });
+          return {
+            name: meta.name,
+            title: meta.name,
+            aliases: meta.aliases || [],
+            genres: (meta.genres || []).map((name) => ({ name, id: /^animation$/i.test(name) ? 16 : void 0 })),
+            first_air_date: meta.year || meta.releaseInfo,
+            release_date: meta.year || meta.releaseInfo,
+            catalogEpisodes: meta.catalogEpisodes,
+            absoluteOffset: meta.absoluteOffset
+          };
+        }
+        if (key) {
+          try {
+            return yield api(provider, `/${type}/${id}?append_to_response=translations,alternative_titles`, key);
+          } catch (_error) {
+          }
+        }
+        const r = yield provider.http.request(`https://www.themoviedb.org/${type}/${id}`, { category: "mapping" });
+        return publicTitle(r.body, type);
+      });
+    }
+    function seasonContext(provider, id, season, key = "", metadata) {
+      return __async(this, null, function* () {
+        if (id.startsWith("kitsu:")) return { absolute: true };
+        if (id.startsWith("tt")) {
+          const episodes = (metadata == null ? void 0 : metadata.catalogEpisodes) || [];
+          if (!episodes.length) throw Object.assign(new Error("IMDb catalog season unavailable."), { code: "SEASON_UNAVAILABLE" });
+          return { episodes, absoluteOffset: metadata.absoluteOffset };
+        }
+        if (key) {
+          try {
+            return yield api(provider, `/tv/${id}/season/${season}`, key);
+          } catch (_error) {
+          }
+        }
+        const r = yield provider.http.request(`https://www.themoviedb.org/tv/${id}/season/${season}`, { category: "mapping" });
+        return publicSeason(r.body);
+      });
+    }
+    module2.exports = { cinemetaMeta, nativeId, publicTitle, publicSeason, titleContext, seasonContext };
+  }
+});
+
 // src/native.js
 var { AnimeSamaProvider } = require_provider();
 var { defaults } = require_config2();
 var Id = require_ids();
+var Catalog = require_catalog_context();
 function clean(value) {
   return String(value || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
-function nativeProvider(settings) {
-  return new AnimeSamaProvider({ animeSamaBaseUrl: settings.animeSamaBaseUrl || defaults.animeSamaBaseUrl, version: settings.version || defaults.version });
+function failure(code) {
+  return Object.assign(new Error(code), { code });
 }
-function tmdb(provider, path, key) {
+function nativeProvider(settings) {
+  return new AnimeSamaProvider(
+    { animeSamaBaseUrl: settings.animeSamaBaseUrl || defaults.animeSamaBaseUrl, version: settings.version || defaults.version },
+    settings.diagnostics ? { onMetrics: (metrics) => console.log("[Anime-Sama] resolution", JSON.stringify(metrics)) } : {}
+  );
+}
+function diagnostic(settings, stage, data) {
+  if (settings.diagnostics) console.log("[Anime-Sama]", stage, JSON.stringify(data));
+}
+function titleNames(metadata) {
+  var _a, _b, _c;
+  return [...new Set([
+    metadata.name,
+    metadata.title,
+    metadata.original_name,
+    metadata.original_title,
+    ...metadata.aliases || [],
+    ...(((_a = metadata.alternative_titles) == null ? void 0 : _a.titles) || ((_b = metadata.alternative_titles) == null ? void 0 : _b.results) || []).map((t) => t.title),
+    ...(((_c = metadata.translations) == null ? void 0 : _c.translations) || []).filter((t) => ["en", "fr", "ja"].includes(t.iso_639_1)).map((t) => {
+      var _a2, _b2;
+      return ((_a2 = t.data) == null ? void 0 : _a2.title) || ((_b2 = t.data) == null ? void 0 : _b2.name);
+    })
+  ].filter((v) => typeof v === "string" && clean(v)))];
+}
+function exactTitle(names, card) {
+  return [card.title, ...card.aliases || []].some((n) => names.has(clean(n)));
+}
+function compatibleYear(detail, metadata, type) {
+  const year = Number(String((type === "movie" ? metadata.release_date : metadata.first_air_date) || "").slice(0, 4));
+  return !detail.year || !year || Math.abs(detail.year - year) <= 1 || metadata.sourceSeason > 1 && detail.year <= year;
+}
+function sourceTitle(provider, metadata, type) {
   return __async(this, null, function* () {
-    const auth = key.includes(".") ? { Authorization: `Bearer ${key}` } : {};
-    const url = "https://api.themoviedb.org/3" + path + (path.includes("?") ? "&" : "?") + (key.includes(".") ? "" : "api_key=" + encodeURIComponent(key));
-    const result = yield provider.http.request(url, { headers: auth, category: "mapping" });
-    return JSON.parse(result.body);
+    const titles = titleNames(metadata), names = new Set(titles.map(clean)), candidates = /* @__PURE__ */ new Map();
+    for (const title of titles.slice(0, 3)) {
+      const search = yield provider.search(title);
+      for (const card of search.items) candidates.set(card.path, card);
+      const exact = search.items.filter((c) => exactTitle(names, c));
+      if (exact.length === 1) {
+        const detail = yield provider.details(exact[0].path);
+        if (compatibleYear(detail, metadata, type)) return detail;
+      }
+      if (search.items.length && search.items.length <= 4) {
+        const matched = [];
+        for (const card of search.items) {
+          const detail = yield provider.details(card.path);
+          if (exactTitle(names, detail) && compatibleYear(detail, metadata, type)) matched.push(detail);
+        }
+        if (matched.length === 1) return matched[0];
+        if (matched.length > 1) throw failure("AMBIGUOUS_SOURCE_TITLE");
+      }
+    }
+    if (candidates.size) throw failure("NO_EXACT_SOURCE_ALIAS");
+    throw failure("SOURCE_TITLE_NOT_FOUND");
+  });
+}
+function declaredRange(group) {
+  const m = /\[?\s*[ÉE]pisodes?\s*(\d+)\s*(?:à|a|-)\s*(\d+)/i.exec(group.name);
+  return m ? { first: Number(m[1]), last: Number(m[2]) } : null;
+}
+function chooseCatalogEpisode(context, requested) {
+  if (context.absolute) return { number: requested, position: requested - 1 };
+  const episodes = context.episodes || [];
+  const exact = episodes.findIndex((e) => e.episode_number === requested);
+  const position = exact >= 0 ? exact : requested - 1;
+  if (!Number.isInteger(position) || !episodes[position]) throw failure("CATALOG_EPISODE_NOT_FOUND");
+  return {
+    number: episodes[position].episode_number,
+    position,
+    count: episodes.length,
+    ...context.absoluteOffset != null ? { absoluteNumber: context.absoluteOffset + position + 1 } : {}
+  };
+}
+function episodeReferences(provider, detail, context, season, episode) {
+  return __async(this, null, function* () {
+    const selected = chooseCatalogEpisode(context, episode);
+    const regular = detail.groups.filter((g) => /^saison\d+(?:p\d+)?$/.test(g.path.split("/").filter(Boolean).pop()));
+    const direct = regular.find((g) => g.path === detail.path + `saison${season}/`);
+    const rangeNumber = selected.absoluteNumber || selected.number;
+    const ranges = regular.filter((g) => {
+      const r = declaredRange(g);
+      return r && rangeNumber >= r.first && rangeNumber <= r.last;
+    });
+    let group = ranges.length === 1 && (context.absolute || rangeNumber > selected.position + 1) ? ranges[0] : direct;
+    if (!group && regular.length === 1 && (context.absolute || rangeNumber > selected.position + 1)) group = regular[0];
+    if (!group) throw failure("SOURCE_SEASON_NOT_FOUND");
+    const versions = yield provider.versions(group, provider.config.version);
+    if (!versions.length) throw failure("SOURCE_VERSION_UNAVAILABLE");
+    const refs = versions.flatMap((v) => {
+      var _a;
+      const first = (_a = v.episodes[0]) == null ? void 0 : _a.number;
+      const target = declaredRange(group) || regular.length === 1 && !direct ? rangeNumber : selected.number;
+      let slot = v.episodes.find((e) => e.number === target);
+      if (!slot && first === 1 && group === direct) slot = v.episodes[selected.position];
+      const range = declaredRange(group);
+      if (range && (rangeNumber < range.first || rangeNumber > range.last)) return [];
+      return (slot == null ? void 0 : slot.servers.length) ? [{ path: v.path, index: slot.index, language: v.language, script: v.script }] : [];
+    });
+    if (!refs.length) throw failure("SOURCE_EPISODE_UNAVAILABLE");
+    return refs;
   });
 }
 function resolveSelection(provider, id, type, season, episode, settings, key) {
   return __async(this, null, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     let map = {};
     if (settings.sourceMap) {
       map = JSON.parse(settings.sourceMap);
-      if (!map || typeof map !== "object" || Array.isArray(map)) throw new Error("Invalid source map.");
+      if (!map || typeof map !== "object" || Array.isArray(map)) throw failure("INVALID_SOURCE_MAP");
     }
     const binding = map[`${type}:${id}`];
     if (binding) {
@@ -1292,63 +1616,30 @@ function resolveSelection(provider, id, type, season, episode, settings, key) {
       const languages = selected.languages || binding.languages || ["vostfr", "vf"];
       if (!Array.isArray(languages)) return [];
       return languages.filter((l) => Id.accepts(provider.config.version, l)).map((language) => {
-        const path2 = selected.path.replace(/\/+$/, "") + "/" + language + "/";
-        return Id.validateRef({ path: path2, index, language, script: path2 + "episodes.js" });
+        const path = selected.path.replace(/\/+$/, "") + "/" + language + "/";
+        return Id.validateRef({ path, index, language, script: path + "episodes.js" });
       });
     }
-    let path, metadata;
-    {
-      if (!key) throw new Error("Nuvio TMDB key unavailable; configure a source map or use the Anime-Sama addon.");
-      metadata = yield tmdb(provider, `/${type}/${encodeURIComponent(id)}?append_to_response=translations`, key);
-      if (!((_b = metadata.genres) == null ? void 0 : _b.some((g) => g.id === 16))) return [];
-      const titles = [...new Set([
-        metadata.name,
-        metadata.title,
-        metadata.original_name,
-        metadata.original_title,
-        ...(((_c = metadata.translations) == null ? void 0 : _c.translations) || []).filter((t) => ["en", "fr", "ja"].includes(t.iso_639_1)).map((t) => {
-          var _a2, _b2;
-          return ((_a2 = t.data) == null ? void 0 : _a2.title) || ((_b2 = t.data) == null ? void 0 : _b2.name);
-        })
-      ].filter(Boolean))];
-      const names = new Set(titles.map(clean).filter(Boolean));
-      const matches = /* @__PURE__ */ new Map();
-      for (const title of titles.slice(0, 3)) {
-        const search = yield provider.search(title);
-        for (const card of search.items) if (names.has(clean(card.title))) matches.set(card.path, card);
-        if (matches.size) break;
-      }
-      if (matches.size !== 1) return [];
-      path = [...matches.keys()][0];
-    }
-    const detail = yield provider.details(path);
-    if (metadata) {
-      const year = Number((metadata.first_air_date || metadata.release_date || "").slice(0, 4));
-      if (detail.year && year && Math.abs(detail.year - year) > 1) return [];
-    }
-    let group;
+    const metadata = yield Catalog.titleContext(provider, id, type, key, season);
+    type = metadata.kind || type;
+    season = metadata.sourceSeason || season;
+    diagnostic(settings, "catalog", { id, type, name: metadata.name || metadata.title, season, episode });
+    if (!((_b = metadata.genres) == null ? void 0 : _b.some((g) => g.id === 16))) return [];
+    const detail = yield sourceTitle(provider, metadata, type);
+    diagnostic(settings, "source", { title: detail.title, path: detail.path });
     if (type === "movie") {
-      group = detail.groups.length === 1 && /\/films?\/$/.test(detail.groups[0].path) ? detail.groups[0] : null;
-      if (!group) return [];
-    } else {
-      group = detail.groups.find((g) => g.path === path + `saison${season}/`);
-      if (!group) return [];
+      if (detail.groups.length !== 1 || !/\/films?\/$/.test(detail.groups[0].path)) throw failure("MOVIE_GROUP_AMBIGUOUS");
+      const versions = yield provider.versions(detail.groups[0], provider.config.version);
+      if (versions.some((v) => v.episodes.length !== 1)) throw failure("MOVIE_GROUP_AMBIGUOUS");
+      return versions.filter((v) => {
+        var _a2;
+        return (_a2 = v.episodes[0]) == null ? void 0 : _a2.servers.length;
+      }).map((v) => ({ path: v.path, index: 0, language: v.language, script: v.script }));
     }
-    const versions = yield provider.versions(group, provider.config.version);
-    let target = Number(episode || 1), explicitIndex;
-    if (type === "movie") {
-      explicitIndex = 0;
-      if (versions.some((v) => v.episodes.length !== 1)) return [];
-    } else {
-      {
-        const tmdbSeason = yield tmdb(provider, `/tv/${encodeURIComponent(id)}/season/${Number(season)}`, key);
-        if (!((_d = tmdbSeason.episodes) == null ? void 0 : _d.length) || versions.some((v) => v.episodes.length !== tmdbSeason.episodes.length || v.episodes[0].number !== 1)) return [];
-      }
-    }
-    return versions.flatMap((v) => {
-      const slot = explicitIndex != null ? v.episodes[explicitIndex] : v.episodes.find((e) => e.number === target);
-      return (slot == null ? void 0 : slot.servers.length) ? [{ path: v.path, index: slot.index, language: v.language, script: v.script }] : [];
-    });
+    const context = yield Catalog.seasonContext(provider, id, season, key, metadata);
+    const refs = yield episodeReferences(provider, detail, context, season, episode);
+    diagnostic(settings, "episode", { count: (_c = context.episodes) == null ? void 0 : _c.length, refs: refs.map((r) => ({ path: r.path, index: r.index, language: r.language })) });
+    return refs;
   });
 }
 function getStreams(tmdbId, mediaType, season, episode) {
@@ -1357,13 +1648,19 @@ function getStreams(tmdbId, mediaType, season, episode) {
       const settings = typeof SCRAPER_SETTINGS === "undefined" ? {} : SCRAPER_SETTINGS;
       const provider = nativeProvider(settings);
       if (String(tmdbId).startsWith("as:ep:")) return (yield provider.streams(tmdbId)).streams;
-      const id = String(tmdbId).replace(/^tmdb[:/]/, "");
-      if (!/^\d+$/.test(id) || !["tv", "movie"].includes(mediaType)) return [];
-      const key = typeof TMDB_API_KEY === "undefined" ? "" : TMDB_API_KEY;
-      const refs = yield resolveSelection(provider, id, mediaType, season, episode, settings, key);
+      const id = Catalog.nativeId(tmdbId), type = ["tv", "series", "show", "anime"].includes(mediaType) ? "tv" : mediaType;
+      if (!id || !["tv", "movie"].includes(type)) {
+        diagnostic(settings, "unsupported catalog ID", { prefix: String(tmdbId).split(":")[0], mediaType });
+        return [];
+      }
+      season = season == null ? 1 : Number(season);
+      episode = episode == null ? 1 : Number(episode);
+      if (type === "tv" && (!Number.isInteger(season) || season < 1 || !Number.isInteger(episode) || episode < 1)) return [];
+      const key = typeof TMDB_API_KEY === "string" ? TMDB_API_KEY.trim() : "";
+      const refs = yield resolveSelection(provider, id, type, season, episode, settings, key);
       return refs.length ? (yield provider.streams(Id.encodeEpisode(refs), { reuseDiscovery: true })).streams : [];
     } catch (error) {
-      console.warn("[Anime-Sama]", error.status ? `HTTP ${error.status}` : "Source unavailable or mapping uncertain.");
+      console.warn("[Anime-Sama]", error.code || (error.status ? `HTTP ${error.status}` : "Source unavailable."));
       return [];
     }
   });
@@ -1372,7 +1669,8 @@ function onSettings() {
   return [
     { type: "text", key: "animeSamaBaseUrl", label: "Adresse du site Anime-Sama", placeholder: defaults.animeSamaBaseUrl, description: "Laisser vide pour utiliser la configuration du plugin." },
     { type: "select", key: "version", label: "Version", defaultValue: defaults.version, options: [{ label: "Toutes les versions", value: "all" }, { label: "VOSTFR", value: "vostfr" }, { label: "VF", value: "vf" }] },
-    { type: "text", key: "sourceMap", label: "Correspondances TMDB (JSON)", description: "Pour les saisons/sagas qui ne correspondent pas à TMDB. Voir le README." }
+    { type: "text", key: "sourceMap", label: "Correspondances TMDB (JSON)", description: "Correspondances personnalisées facultatives pour des cas ambigus. Voir le README." },
+    { type: "switch", key: "diagnostics", label: "Diagnostic", defaultValue: false, description: "Journaliser les étapes et les causes des liens manquants, sans URL signée ni clé API." }
   ];
 }
-module.exports = { getStreams, onSettings, resolveSelection, clean };
+module.exports = { getStreams, onSettings, resolveSelection, clean, sourceTitle, chooseCatalogEpisode, episodeReferences };

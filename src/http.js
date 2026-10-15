@@ -1,8 +1,9 @@
 const { abortError } = require('./concurrency');
+const {runtimeFetch} = require('./runtime-fetch');
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 class HttpError extends Error { constructor(status) { super(`HTTP ${status}`); this.status = status; } }
 class HttpClient {
-  constructor(config, fetchImpl = fetch) { this.config = config; this.fetch = fetchImpl; }
+  constructor(config, fetchImpl = fetch) { this.config = config; this.fetch = fetchImpl === fetch ? runtimeFetch(fetchImpl) : fetchImpl; }
   async request(url, options = {}, metrics) {
     if (options.signal?.aborted) throw abortError();
     const controller = new AbortController();
@@ -34,7 +35,7 @@ class HttpClient {
         body = options.binary ? bytes : new TextDecoder().decode(bytes);
       } else {
         // Current Nuvio fetch buffers at most its host bridge limit before exposing data.
-        body = options.binary ? new Uint8Array(await response.arrayBuffer()) : await response.text();
+        body = options.binary ? new Uint8Array(await response.arrayBuffer(options.prefix ? limit : undefined)) : await response.text();
         if (body.length > limit && !options.prefix) throw new Error('Response too large.');
         body = body.slice(0,limit);
       }

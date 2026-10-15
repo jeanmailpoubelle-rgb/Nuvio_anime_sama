@@ -15,7 +15,9 @@
 | `src/extractors/hls.js`, `mp4.js` | Manifest metadata and bounded MP4 header parsing |
 | `src/extractors/dispatcher.js` | Host routing, independent deadlines, validation and header inheritance |
 | `src/streams.js` | Accurate labels, structured metadata, deduplication and addon header hints |
-| `src/native.js` | Nuvio getStreams/onSettings and conservative/explicit TMDB mapping |
+| `src/native.js` | Nuvio getStreams/onSettings, source alias/episode mapping and safe diagnostics |
+| `src/catalog-context.js` | TMDB/API or public fallback, bounded IMDb/Cinemeta parsing and Kitsu catalog identities |
+| `src/runtime-fetch.js` | Nuvio bridge transport with lazy, bounded binary decoding; standard fetch fallback |
 | `src/addon.js`, `src/server.js` | Addon HTTP resources and local native artifact hosting |
 
 ## Nuvio native plugin
@@ -43,7 +45,40 @@ request/host/overall budgets and a success collection window. Its fetch bridge
 currently buffers at most 1 MiB per fetch and does not forward AbortSignal. The
 bounded Sendvid probe requests 64 KiB and only inspects that prefix, but on a native
 bridge that ignores Range the bridge may buffer up to its own cap first. Node's
-stream reader cancels at 64 KiB even if Range is ignored. No whole film is downloaded.
+stream reader cancels at 64 KiB even if Range is ignored. No whole film is downloaded. The optional bridge adapter uses the same request
+arguments as Nuvio 0.5.9/0.5.10, but skips its eager base64 decoding for text. Binary
+prefixes decode only the requested bytes. Both asynchronous mobile and synchronous
+NuvioTV bridge return types are supported; other runtimes use normal fetch.
+
+## Native catalog compatibility in 1.0.1
+
+The original default path accepted only numeric TMDB IDs and required an injected
+TMDB key. Earlier live native testing used an explicit mapping and did not exercise
+a fresh installation from ordinary catalog IDs. This left IMDb/Kitsu IDs unsupported
+and did not catch metadata failures, translated source titles or count mismatches.
+
+The corrected path normalizes TMDB/IMDb/Kitsu IDs and episode suffixes, uses the
+app's TMDB key where available, and can resolve all three input types without one.
+Public TMDB pages supply JSON-LD title/year/genre and actual season episode numbers;
+Cinemeta supplies IMDb identity metadata; oversized responses are parsed only
+through complete fields/episode entries for the requested season, within the bridge cap; Kitsu supplies anime identity and absolute
+numbering. No borrowed key or service credential is used. Native auto-matching
+adds these identity requests before Anime-Sama discovery; explicit mappings and
+addon IDs retain their existing fast paths.
+
+Anime-Sama title aliases come only from the selected card or `#titreAlter` on the
+actual detail page. Names of related titles are excluded. Exact normalized aliases
+and compatible years remain required; substring matches do not select a spinoff.
+Source group ranges map continuous catalog numbers to the right saga. Real array
+positions remain authoritative, including missing VF entries. Equal total episode
+counts and a first source episode numbered 1 are no longer required. Ambiguous
+season arrangements still need an explicit map rather than invented offsets.
+
+A diagnostic switch logs catalog identity, selected relative path/index, timings
+and safe failure codes. Current Nuvio 0.5.9 injects the TMDB key and its polyfills
+match the pinned 0.5.10 snapshot; lacking that global is supported as a fallback,
+not asserted to be the cause on every device. The UI's repository chips reflect
+returned streams, so their absence alone does not identify an installation error.
 
 ## Catalog addon
 
@@ -101,3 +136,13 @@ need a specific extractor; there is no page-JS execution or challenge solver.
 TMDB episode organization can differ from source sagas: prefer addon IDs or explicit
 mappings. Updating Nuvio's bridge may require refreshing runtime fixtures and field
 mapping. A single domain setting fixes origin changes, not changed website markup.
+
+## Verification scope
+
+The real-HTTP native probe uses one short-lived worker per case and retains its
+QuickJS-WASM instance until process exit. This avoids a development-harness runtime
+free assertion observed after a large Cinemeta case had already returned its stream.
+It verifies actual bundle execution, IDs, bridge response limits, metadata and media
+samples; it does not verify WASM destruction or Android/iOS native lifecycle. Unit
+cases still dispose their small QuickJS runtimes explicitly. The development-harness
+assertion has not been established as a failure in Nuvio's native QuickJS library.

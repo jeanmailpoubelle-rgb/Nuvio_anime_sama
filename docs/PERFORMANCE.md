@@ -6,6 +6,31 @@ extraction and playback validation. They exclude opening metadata beforehand and
 the separate media segment sample. Network location, signed URLs, remote load and
 the success collection window affect each run; these are samples, not guarantees.
 
+## Native default-install verification (1.0.1)
+
+The original report below tested native resolution through an explicit mapping.
+After the missing-stream report, the **actual automatic native entry** was tested
+with empty settings, no injected key and no source map in QuickJS using the 0.5.9
+bridge interfaces and real HTTP. Each case ran in its own short-lived worker.
+
+| Native selection | Total time (ms) | Streams | Requests |
+| --- | ---: | ---: | ---: |
+| One Piece S1E1 TMDB | 5640 | 1 | 13 |
+| One Piece S1E1 IMDb | 4204 | 1 | 12 |
+| One Piece E1 Kitsu | 3723 | 1 | 12 |
+| Jujutsu Kaisen S1E1 TMDB | 6520 | 2 | 28 |
+
+Every case also returned an HTTP 206, 4096-byte media segment sample. One Piece
+returned ANSEmbed 720p VOSTFR; its published VF episode-1 players returned 404.
+The report contains no signed URLs: `NATIVE-VERIFICATION-1.0.1.json`.
+
+The first unoptimized native One Piece check in this WASM harness took 33,732 ms.
+The final TMDB case took 5640 ms. The bridge adapter removes eager binary
+base64 decoding of text responses, preserving headers, request deadlines and lazy
+bounded binary prefixes. Network variability and WASM overhead limit this comparison;
+it is not a timing guarantee for a phone. Worker lifetimes do not validate runtime
+teardown or actual native device playback; see ARCHITECTURE.md for that scope.
+
 ## Live results
 
 | Test | Players | Successful streams | Resolve time (ms) | Requests |
@@ -125,9 +150,10 @@ works; no retry sleeps or whole-media downloads are used.
 - **Subtitles:** real JWPlayer captions are covered by deterministic fixtures;
   the sampled source streams had no downloadable subtitle tracks. Burned-in
   VOSTFR is represented as edition metadata only.
-- **Automatic native TMDB matching:** deterministic tests cover its safeguards.
-  Live native verification used the explicit mapping, since no app TMDB credential
-  was supplied to the development machine. Complex sagas/remakes require mappings.
+- **Automatic native catalog matching:** the original v1.0.0 report above used an
+  explicit mapping. Version 1.0.1 separately tests fresh-install automatic TMDB,
+  IMDb and Kitsu inputs without a key; see `NATIVE-VERIFICATION-1.0.1.json`.
+  Ambiguous season splits and remakes can still require explicit mappings.
 - Actual Android/iOS playback, casting, external players and Docker image execution
   were not tested. QuickJS/HTTP tests do not establish device playback.
 

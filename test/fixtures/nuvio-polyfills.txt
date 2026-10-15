@@ -1,4 +1,4 @@
-// Snapshot from tapframe/NuvioStreaming at 779c145a, GPL-3.0. See docs/REFERENCES.md.
+// Snapshot verified against tapframe/NuvioStreaming 0.5.9-beta (db0c50b5) and 779c145a, GPL-3.0. See docs/REFERENCES.md.
 // QuickJS has no event loop or native timers. Back timers with a
 // coroutine delay so callbacks run asynchronously without blocking a worker.
 var __plugin_timer_id = 0;

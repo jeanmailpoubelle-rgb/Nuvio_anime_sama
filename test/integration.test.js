@@ -39,12 +39,13 @@ test('explicit native mapping bypasses all metadata/search requests and keeps re
   assert.deepEqual(await resolveSelection(p,'95479','tv',2,1,settings,''),[]);
   await assert.rejects(resolveSelection(p,'95479','tv',1,1,{sourceMap:'invalid'},''));
 });
-test('automatic native matching verifies animation, exact title, year and season count',async()=>{
+test('automatic native matching preserves published episodes when catalog counts differ',async()=>{
   const {p}=provider();
   const original=p.http.fetch;let count=24;
   p.http.fetch=async(url,opts)=>url.startsWith('https://api.themoviedb.org')?new Response(JSON.stringify(url.includes('/season/')?{episodes:Array.from({length:count},(_,i)=>({episode_number:i+1}))}:{name:'Jujutsu Kaisen',genres:[{id:16}],first_air_date:'2020-10-03'})):original(url,opts);
   const refs=await resolveSelection(p,'95479','tv',1,2,{},'test-key');assert.equal(refs.length,2);assert.equal(refs[0].index,1);
-  count=25;assert.deepEqual(await resolveSelection(p,'95479','tv',1,2,{},'test-key'),[]);
+  count=25;assert.equal((await resolveSelection(p,'95479','tv',1,2,{},'test-key')).length,2);
+  await assert.rejects(resolveSelection(p,'95479','tv',1,25,{},'test-key'),{code:'SOURCE_EPISODE_UNAVAILABLE'});
 });
 test('native plugin fails soft on unsupported IDs and publishes editable settings',async()=>{
   assert.deepEqual(await getStreams('not-a-tmdb-id','tv',1,1),[]);

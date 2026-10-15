@@ -82,3 +82,38 @@ The repository is distributed under GPL-3.0-or-later; the GPL text is in `LICENS
 CloudStream and Nuvio upstream authors retain their copyrights. The private source
 owner supplied and authorized the port; public SDK/runtime adaptations are attributed
 above. This project is independent of Anime-Sama and Nuvio.
+
+## Native compatibility follow-up (1.0.1)
+
+Nuvio **0.5.9-beta**, tag `db0c50b503039863909c86405907462bf1752193`, was
+inspected after the user's missing-stream report. Its `JsBindings.kt` matches the
+previously pinned snapshot. `PluginContentIds.kt`, `PluginRepository.kt`,
+`TmdbService.kt` and `DomBridge.kt` establish that IDs can remain nonnumeric when
+app conversion is unavailable and that the bridge caches at most eight DOM documents.
+The harness now tests the complete automatic path with empty settings as well as
+explicit mappings, and runs real HTTP through those QuickJS-compatible interfaces.
+
+Public metadata fallback references:
+
+- TMDB's public title JSON-LD and `.episode_list .episode` season pages, e.g.
+  https://www.themoviedb.org/tv/37854 and https://www.themoviedb.org/tv/37854/season/1
+- IMDb identity through Cinemeta's public `/meta/series/{imdbId}.json` resource:
+  https://v3-cinemeta.strem.io/manifest.json
+- Kitsu's public anime resource: https://kitsu.io/api/edge/anime/12
+
+The primary source's `UVOD/.../EnglishMatching.kt` was also inspected for exact-alias
+and year-confidence conventions; no API credentials or SDK keys were copied.
+Source aliases are parsed from Anime-Sama's actual `#titreAlter` element. The live
+One Piece first-season script and the source's group ranges supplied the episode
+positions used for verification; no title-specific playback URL is hardcoded.
+
+The bridge performance adapter is based on the six-argument `__native_fetch`
+contract in those same Nuvio 0.5.9/0.5.10 files; the matching synchronous return
+contract was checked in NuvioMedia/NuvioTV at `4fe12b3f14939101b8988c5961dbdc862072c5fa`.
+The default mobile fetch wrapper eagerly decodes `bodyBase64` even for text. A
+standalone QuickJS-WASM check took about 50 seconds to decode 500,000 bytes; a
+full One Piece automatic resolution initially took 33,732 ms in that harness.
+The adapter preserves the native transport while decoding binary only on demand.
+Cinemeta's One Piece metadata was 1,358,974 text characters during investigation,
+exceeding the app's 1 MiB body limit; complete early metadata/season entries are
+read without treating a clipped tail as a complete JSON document.
