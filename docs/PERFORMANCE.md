@@ -1,10 +1,65 @@
 # Measured resolution and limits
 
-Checked on 2026-10-15T01:56:13.492Z from the cloud machine through its configured HTTPS
-proxy. Measurements include fresh episode-script discovery, all completed host
-extraction and playback validation. They exclude opening metadata beforehand and
-the separate media segment sample. Network location, signed URLs, remote load and
-the success collection window affect each run; these are samples, not guarantees.
+Measurements come from the cloud machine through its configured HTTPS proxy.
+Each report records its date and measurement boundaries. Network location,
+upstream load and the collection window affect each run; timings are samples.
+
+## One Piece ongoing sagas and TV latency (1.0.5)
+
+Checked 2026-10-16 against the user's Nuvio Catalog and live Anime-Sama pages.
+The catalog selection **S23 E1180** belongs to source **Saga 12**, beginning at
+1156 with no declared end number. The old resolver returned
+`SOURCE_SEASON_NOT_FOUND`; its episode parser also missed `finirListeOP(1156)`
+and labeled the 25 slots as 1–25. Both are corrected using published range/call
+literals and actual array positions, without a title-specific season override.
+
+The boundary check includes Saga 11's seven recap specials: **E1155 is slot 73**,
+and **E1156 is Saga 12 slot 0**. All selections below assert source group and
+position, then retrieve an HTTP 206, 4096-byte HLS segment. All return ANSEmbed
+1080p VOSTFR; phone cases may include other validated hosts too.
+
+| Selection | Discovered players | TV streams | TV complete (ms) | Phone result ready (ms) | Phone complete (ms) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| One Piece TMDB S23E1180 | 4 | 1 | 7081 | 7742 | 16739 |
+| One Piece IMDb S23E1180 | 4 | 1 | 4811 | 6151 | 15746 |
+| One Piece season-local S23E25 | 4 | 1 | 4848 | 5424 | 16063 |
+| One Piece Kitsu S1E1180 | 4 | 1 | 3657 | 5582 | 14882 |
+| One Piece end of Egghead S22E1155 | 2 | 1 | 4832 | 6532 | 15551 |
+| One Piece start of Elbaf S23E1156 | 3 | 1 | 5032 | 6288 | 15361 |
+
+Times include catalog matching, language probes and native startup. These use
+exact pinned NuvioTV 1.0.0 / Nuvio phone 0.5.9 runtime bridges on Linux/JVM with
+Node HTTP through the cloud proxy, not physical devices. Phone/native HTTP cannot
+be canceled by JS: unfinished native calls added roughly 9–11 s after the result
+was ready in these samples. That completion time is reported explicitly.
+
+During development the mapping-corrected TV path took 18,712 ms for S23E1180:
+after its healthy ANSEmbed result it blocked 12 s on `lpayer.embed4me.com`.
+The final TV scheduler skips further hosts once that edition works. It still
+tries other requested editions independently and continues to fallbacks after
+failure. The Jujutsu S1E1 TV regression returned **both VF and VOSTFR 1080p**
+in 4,950 ms. The TV's inability to interrupt an already blocking native request
+remains a limitation if a preferred host itself stalls.
+
+For native S23E1180 TMDB, **11 TV requests** = 8 catalog/source/language-discovery
+requests + 3 ANSEmbed extraction/validation requests. Player data is reused from
+the same invocation: no second episode-script GET. Discovery adds no network
+stage for the mapping correction. Once the relative episode reference is known,
+the retained-ID path remains one fresh script request + host extraction.
+
+Reports: [One Piece TV](ONE-PIECE-TV-VERIFICATION-1.0.5.json),
+[One Piece phone](ONE-PIECE-MOBILE-VERIFICATION-1.0.5.json),
+[TV S1E1 regressions including VF](NATIVE-TV-VERIFICATION-1.0.5.json),
+[general live browsing/extraction/concurrency](LIVE-VERIFICATION-1.0.5.json).
+The general suite passed its VF, VOSTFR, recent/older series and film cases;
+its known dead/placeholder case correctly returned no stream. Deterministic tests
+cover future-slot rejection, conflicting/overlapping ranges, holes, new releases,
+independent TV editions and bounded concurrent phone extraction (69 tests total).
+
+Published group labels, helper call names and catalog episode numbering can
+change upstream. Unrecognized or conflicting mappings remain unavailable rather
+than selecting another numbered source slot. Signed media URLs are not saved in
+reports or cached by the provider.
 
 ## Android TV and phone verification (1.0.4)
 

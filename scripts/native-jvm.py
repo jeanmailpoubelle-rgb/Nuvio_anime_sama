@@ -52,6 +52,7 @@ def main():
     parser.add_argument('--output', type=Path)
     parser.add_argument('--bundle', type=Path, default=ROOT / 'providers/anime-sama.js')
     parser.add_argument('--runtime', choices=['mobile', 'tv'], default='mobile')
+    parser.add_argument('--suite', choices=['smoke', 'one-piece'], default='smoke')
     args = parser.parse_args()
     tv = args.runtime == 'tv'
     lock = json.loads((ROOT / ('test/native-jvm/dependencies-tv.json' if tv else 'test/native-jvm/dependencies.json')).read_text())
@@ -84,21 +85,35 @@ def main():
         report = {'checkedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                   'runtime': ('dokar3 quickjs-kt 1.0.5 JVM; exact NuvioTV 1.0.0 timerless polyfills, URL/Jsoup bridges and synchronous text-only HTTP contract; Node HTTP; not Android playback' if tv else
                               'dokar3 quickjs-kt 1.0.15 JVM; exact pinned Nuvio 0.5.9 startup, URL/Ktor and DOM/Ksoup bridges; Node HTTP; not Android playback'),
-                  'nuvioCommit': lock['nuvioCommit'], 'settings': {}, 'injectedTmdbKey': False,
+                  'nuvioCommit': lock['nuvioCommit'], 'pluginVersion': json.loads((ROOT / 'package.json').read_text())['version'],
+                  'settings': {'diagnostics': True}, 'injectedTmdbKey': False, 'manualMappings': False,
                   'bundleSha256': hashlib.sha256(args.bundle.read_bytes()).hexdigest(), 'cases': []}
-        for title, identity, kind in [('One Piece TMDB', '37854', 'tv'), ('One Piece IMDb', 'tt0388629', 'tv'),
-                                       ('One Piece Kitsu', 'kitsu:12', 'series'), ('Jujutsu Kaisen', '95479', 'tv')]:
+        cases = ([('One Piece TMDB', '37854', 'tv', 23, 1180, 12, 24),
+                  ('One Piece IMDb', 'tt0388629', 'tv', 23, 1180, 12, 24),
+                  ('One Piece season-local', '37854', 'tv', 23, 25, 12, 24),
+                  ('One Piece Kitsu', 'kitsu:12', 'series', 1, 1180, 12, 24),
+                  # Seven published recap specials occupy player slots here.
+                  ('One Piece end of Egghead', '37854', 'tv', 22, 1155, 11, 73),
+                  ('One Piece start of Elbaf', '37854', 'tv', 23, 1156, 12, 0)] if args.suite == 'one-piece' else
+                 [('One Piece TMDB', '37854', 'tv', 1, 1, 1, 0),
+                  ('One Piece IMDb', 'tt0388629', 'tv', 1, 1, 1, 0),
+                  ('One Piece Kitsu', 'kitsu:12', 'series', 1, 1, 1, 0),
+                  ('Jujutsu Kaisen', '95479', 'tv', 1, 1, 1, 0)])
+        for title, identity, kind, season, episode, source_season, index in cases:
             run = subprocess.run(['java', '-cp', classpath + os.pathsep + str(output), harness + 'Kt',
-                                  str(args.bundle.resolve()), 'http://127.0.0.1:' + port, identity, kind],
+                                  str(args.bundle.resolve()), 'http://127.0.0.1:' + port, identity, kind, str(season), str(episode)],
                                  text=True, capture_output=True, timeout=75, check=True)
             if run.stderr:
                 print(run.stderr.strip(), flush=True)
             row = {'title': title, **json.loads(run.stdout)}
+            refs = (row.get('selection') or {}).get('refs', [])
+            row['correctSourceSelection'] = bool(refs) and all(
+                r['path'].split('/')[-3] == 'saison' + str(source_season) and r['index'] == index for r in refs)
             print(json.dumps(row, ensure_ascii=False), flush=True)
             report['cases'].append(row)
         if args.output:
             args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
-        if any(not r['streams'] or (r['mediaSample'] or {}).get('bytes') != 4096 for r in report['cases']):
+        if any(not r['correctSourceSelection'] or not r['streams'] or (r['mediaSample'] or {}).get('bytes') != 4096 for r in report['cases']):
             raise SystemExit(1)
     finally:
         transport.terminate()

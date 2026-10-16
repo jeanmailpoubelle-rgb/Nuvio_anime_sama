@@ -30,15 +30,17 @@ optional companion addon below.
 
 ### Android TV
 
-Refresh the plugin repository on the TV itself and enable **Anime-Sama 1.0.4**.
-Plugin versions/settings on the phone and TV can differ. Version 1.0.4 supports
+Refresh the plugin repository on the TV itself and enable **Anime-Sama 1.0.5**.
+Plugin versions/settings on the phone and TV can differ. Versions 1.0.4 and later support
 NuvioTV **1.0.0**, which provides synchronous HTTP but no JavaScript timers; earlier
 plugin versions returned no streams in that runtime. Newer binary-capable TV
 runtime polyfills are also covered by deterministic tests.
 
 On those timerless TV builds, request/host deadlines are checked between network
-stages. Hosts are resolved one at a time in priority order, completing a preferred
-host's validation before lower-priority hosts start. A blocking native HTTP call still
+stages. Hosts are resolved one at a time in priority order. From 1.0.5, the first
+successful host supplies each requested edition (VF, VOSTFR, etc.); remaining hosts
+for that edition are skipped so a dead secondary host cannot delay working links.
+Other requested editions still get independent attempts. A blocking native HTTP call still
 depends on NuvioTV's own network timeout; JavaScript cannot interrupt it. Phone
 builds retain concurrent host extraction and their existing asynchronous timers.
 NuvioTV 1.0.0 exposes only decoded text responses. HLS extraction works; hosts that
@@ -191,8 +193,24 @@ a source/catalog count difference does not discard episodes that actually exist.
 Missing versions remain unavailable, and ambiguous groups still fail safely.
 Complex season splits can use an explicit mapping below.
 
+### One Piece sagas and ongoing episodes (1.0.5)
+
+Nuvio's catalog seasons differ from Anime-Sama's sagas. For example, **S23 E1180**
+(also season-local **S23 E25**) maps to `/catalogue/one-piece/saison12/vostfr/`,
+zero-based player position **24**. The source declares `[Episode 1156 à ...]` and
+uses `finirListeOP(1156)` to label its ongoing episode list. Both the open range
+and that known helper are supported; there is no hardcoded latest episode limit
+or season-23 override in the provider.
+
+The preceding Egghead saga also uses this helper after seven recap specials.
+Episode **1155** occupies position **73**, not 66; the parser preserves those
+special slots. Episode **1156** starts the next saga at position **0**. Matching
+requires the exact published episode label and a nonempty player slot. An open
+range does not invent future episodes, and a missing VF slot never selects an
+earlier VF episode. Overlapping saga ranges or conflicting labels fail safely.
+
 After upgrading, open **Settings → Plugins**, refresh this repository and confirm
-**Anime-Sama 1.0.4** is enabled, then reopen the episode. Repository tabs on the
+**Anime-Sama 1.0.5** is enabled, then reopen the episode. Repository tabs on the
 stream screen only appear when that repository returns streams. If links remain
 missing, enable **Diagnostic** in Anime-Sama's plugin settings to log the catalog ID,
 matching stages and failure codes without signed links or credentials.
@@ -236,17 +254,17 @@ For TV, array index = requested episode − 1 + `indexOffset`. For movies, `inde
 is zero-based. Paths identify groups **without** a trailing language. These are
 explicit source mappings, so verify their ordering when adding a saga or film.
 Explicit Jujutsu S1 mapping and automatic One Piece/Jujutsu matching have separate
-live checks. The native verification runs with empty settings, no manual mapping
-and no injected key in QuickJS with the Nuvio 0.5.9-compatible bridge.
+live checks. Native verification uses no manual mapping or injected key; the JVM
+harness enables only diagnostics to record the selected relative path and position.
 
 ## Development and verification
 
 ```sh
 npm run check                 # build + lint + deterministic tests
-npm run test:live -- --output docs/LIVE-VERIFICATION.json
-npm run test:native:live -- --output docs/NATIVE-VERIFICATION-1.0.2.json
-npm run test:native:jvm -- --output docs/NATIVE-MOBILE-VERIFICATION-1.0.4.json
-npm run test:native:jvm -- --runtime tv --output docs/NATIVE-TV-VERIFICATION-1.0.4.json
+npm run test:live -- --output docs/LIVE-VERIFICATION-1.0.5.json
+npm run test:native:live
+npm run test:native:jvm -- --suite one-piece --output docs/ONE-PIECE-MOBILE-VERIFICATION-1.0.5.json
+npm run test:native:jvm -- --runtime tv --suite one-piece --output docs/ONE-PIECE-TV-VERIFICATION-1.0.5.json
 npm audit --omit=dev
 ```
 
@@ -254,6 +272,10 @@ The JVM test additionally requires Java 21 and Python 3. It downloads checksum-p
 Kotlin/runtime dependencies and Nuvio source snapshots into ignored `.tmp/`.
 It measures full native evaluation through callback completion and closes each
 native runtime. No personal server is needed to install or use the plugin.
+The `one-piece` suite checks TMDB/IMDb/Kitsu selections, global and season-local
+episode numbers, and both sides of the Egghead/Elbaf boundary. It asserts the
+selected source group and player position as well as retrieving actual media.
+Omit `--suite one-piece` for the original One Piece/Jujutsu S1E1 smoke suite.
 
 The live commands perform real upstream HTTP requests and bounded media samples.
 It reports counts/timings/metadata without signed URLs or private state. Reports
@@ -264,10 +286,13 @@ polyfills, including its constrained Cheerio bridge.
 - [Architecture, contracts and maintenance](docs/ARCHITECTURE.md)
 - [CloudStream reuse and pinned references](docs/REFERENCES.md)
 - [Performance, examples and known limitations](docs/PERFORMANCE.md)
-- [Sanitized live HTTP results](docs/LIVE-VERIFICATION.json)
-- [Current native JVM verification](docs/NATIVE-JVM-VERIFICATION-1.0.2.json)
+- [Current live HTTP results](docs/LIVE-VERIFICATION-1.0.5.json)
+- [One Piece phone verification](docs/ONE-PIECE-MOBILE-VERIFICATION-1.0.5.json)
+- [One Piece Android TV verification](docs/ONE-PIECE-TV-VERIFICATION-1.0.5.json)
+- [Earlier native JVM verification](docs/NATIVE-JVM-VERIFICATION-1.0.2.json)
 - [Reproduced 1.0.1 startup failure](docs/NATIVE-JVM-REGRESSION-1.0.1.json)
-- [Android TV native verification](docs/NATIVE-TV-VERIFICATION-1.0.4.json)
+- [Current TV smoke tests, including VF/VOSTFR](docs/NATIVE-TV-VERIFICATION-1.0.5.json)
+- [Earlier Android TV native verification](docs/NATIVE-TV-VERIFICATION-1.0.4.json)
 - [Phone native regression check](docs/NATIVE-MOBILE-VERIFICATION-1.0.4.json)
 
 Source: [`src/`](src/). Generated installable artifact:

@@ -49,8 +49,12 @@ async function sourceTitle(provider,metadata,type) {
   throw failure('SOURCE_TITLE_NOT_FOUND');
 }
 function declaredRange(group) {
-  const m = /\[?\s*[ÉE]pisodes?\s*(\d+)\s*(?:à|a|-)\s*(\d+)/i.exec(group.name);
-  return m ? {first:Number(m[1]),last:Number(m[2])} : null;
+  // Ongoing sagas publish "Episode 1156 à ..." (or a Unicode ellipsis).
+  // This selects a group only; the actual numbered source slot must still exist.
+  const m = /\[?\s*[ÉE]pisodes?\s*(\d+)\s*(?:à|a|-)\s*(\d+|\.{3}|…)/i.exec(group.name);
+  if (!m) return null;
+  const first = Number(m[1]), last = /^\d+$/.test(m[2]) ? Number(m[2]) : Infinity;
+  return first > 0 && last >= first ? {first,last} : null;
 }
 function chooseCatalogEpisode(context,requested) {
   if (context.absolute) return {number:requested,position:requested-1};
@@ -70,20 +74,23 @@ async function episodeReferences(provider,detail,context,season,episode) {
   const direct = regular.find(g => g.path === detail.path+`saison${season}/`);
   const rangeNumber = selected.absoluteNumber || selected.number;
   const ranges = regular.filter(g => { const r = declaredRange(g); return r && rangeNumber >= r.first && rangeNumber <= r.last; });
-  let group = ranges.length === 1 && (context.absolute || rangeNumber > selected.position+1) ? ranges[0] : direct;
+  const useRange = context.absolute || rangeNumber > selected.position+1;
+  if (useRange && ranges.length > 1) throw failure('SOURCE_SEASON_AMBIGUOUS');
+  let group = ranges.length === 1 && useRange ? ranges[0] : direct;
   // A single source season can contain a show's complete continuous episode list.
   if (!group && regular.length === 1 && (context.absolute || rangeNumber > selected.position+1)) group = regular[0];
   if (!group) throw failure('SOURCE_SEASON_NOT_FOUND');
+  const range = declaredRange(group);
+  if (range && (rangeNumber < range.first || rangeNumber > range.last)) throw failure('SOURCE_EPISODE_UNAVAILABLE');
   const versions = await provider.versions(group,provider.config.version);
   if (!versions.length) throw failure('SOURCE_VERSION_UNAVAILABLE');
   const refs = versions.flatMap(v => {
     const first = v.episodes[0]?.number;
-    const target = declaredRange(group) || (regular.length === 1 && !direct) ? rangeNumber : selected.number;
+    const target = range || (regular.length === 1 && !direct) ? rangeNumber : selected.number;
     let slot = v.episodes.find(e => e.number === target);
-    if (!slot && first === 1 && group === direct) slot = v.episodes[selected.position];
-    // A numeric source range that disagrees with the catalog is not a match.
-    const range = declaredRange(group);
-    if (range && (rangeNumber < range.first || rangeNumber > range.last)) return [];
+    // Index fallback is safe only for an unnumbered ordinary season. Never hide
+    // a disagreement with a declared saga range by returning a different video.
+    if (!slot && !range && first === 1 && group === direct) slot = v.episodes[selected.position];
     return slot?.servers.length ? [{path:v.path,index:slot.index,language:v.language,script:v.script}] : [];
   });
   if (!refs.length) throw failure('SOURCE_EPISODE_UNAVAILABLE');

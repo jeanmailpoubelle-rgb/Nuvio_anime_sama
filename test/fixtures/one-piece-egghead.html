@@ -1,0 +1,24 @@
+<!-- Reduced live numbering scripts from saison11/vostfr, checked 2026-10-16.
+     Seven specials occupy actual player slots but have no regular episode number. -->
+<script>$(document).ready(function () { resetListe(); finirListe(1); });</script>
+<script>
+$(document).ready(function () {
+    function finirListeOP(debut) {
+        for (var i = debut; i <= (1088 + (tailleEpisodes - epRetards)); i++) {
+            var optEpisode = document.createElement('option');
+            optEpisode.text = 'Episode ' + i;
+            listeEpisodes.appendChild(optEpisode);
+        }
+        setCorrectEpisode();
+    }
+    resetListe();
+    creerListe(1089, 1092); newSPF('EggHead SP 1');
+    creerListe(1093, 1100); newSPF('EggHead SP 2');
+    creerListe(1101, 1108); newSPF('EggHead SP 3');
+    creerListe(1109, 1116); newSPF('EggHead SP 4');
+    creerListe(1117, 1120); newSPF('EggHead SP 5');
+    creerListe(1121, 1128); newSPF('EggHead SP 6');
+    creerListe(1129, 1133); newSPF('EggHead SP 7');
+    finirListeOP(1134);
+});
+</script>

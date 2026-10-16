@@ -140,16 +140,21 @@ class AnimeSamaProvider {
       const players = [...unique.values()].sort((a,b) => priority(a.embed)-priority(b.embed));
       metrics.discoveryMs = Date.now()-started; metrics.players = players.length;
       const collected = [];
+      const resolvedLanguages = new Set();
       let graceTimer, signalReady;
       const ready = new Promise(resolve => { signalReady = resolve; });
       // TV's native fetch blocks the JS thread. Finish one preferred host before
       // starting another, so a dead host cannot preempt a healthy one's validation.
       const work = mapLimit(players,timerless ? 1 : this.config.extractorConcurrency,async ({embed,ref}) => {
-        if (scope.signal.aborted) return;
+        if (scope.signal.aborted || (timerless && resolvedLanguages.has(ref.language))) return;
         const media = await this.dispatcher.extract(embed,this.base+ref.path,ref.language,metrics,scope.signal);
         if (media.length) {
           collected.push(...media);
-          if (!graceTimer) graceTimer = setTimer(signalReady,this.config.successGraceMs);
+          // A synchronous TV request cannot be interrupted by a JS deadline.
+          // Once an edition works, don't block its result on another host for
+          // that edition. Still try the other requested editions independently.
+          resolvedLanguages.add(ref.language);
+          if (!timerless && !graceTimer) graceTimer = setTimer(signalReady,this.config.successGraceMs);
         }
       });
       try {

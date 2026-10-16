@@ -640,7 +640,7 @@ var require_pages = __commonJS({
       const labels = [];
       let specials = 0;
       for (const script of inlineScripts($)) {
-        for (const { name, args } of Js.calls(script, ["resetListe", "creerListe", "newSP", "newSPF", "finirListe"])) {
+        for (const { name, args } of Js.calls(script, ["resetListe", "creerListe", "newSP", "newSPF", "finirListe", "finirListeOP"])) {
           if (name === "resetListe") {
             labels.length = 0;
             specials = 0;
@@ -656,6 +656,8 @@ var require_pages = __commonJS({
             for (let n = start; n <= end && labels.length < count; n++) labels.push(`Épisode ${n}`);
           } else if (name === "finirListe" && args.length === 1 && /^\d+$/.test(args[0].text)) {
             for (let n = Number(args[0].text); n <= count - specials && labels.length < count; n++) labels.push(`Épisode ${n}`);
+          } else if (name === "finirListeOP" && args.length === 1 && /^[1-9]\d*$/.test(args[0].text)) {
+            for (let n = Number(args[0].text); labels.length < count; n++) labels.push(`Épisode ${n}`);
           }
         }
       }
@@ -1347,16 +1349,18 @@ var require_provider = __commonJS({
             metrics.discoveryMs = Date.now() - started;
             metrics.players = players.length;
             const collected = [];
+            const resolvedLanguages = /* @__PURE__ */ new Set();
             let graceTimer, signalReady;
             const ready = new Promise((resolve) => {
               signalReady = resolve;
             });
             const work = mapLimit(players, timerless ? 1 : this.config.extractorConcurrency, (_02) => __async(this, [_02], function* ({ embed, ref }) {
-              if (scope.signal.aborted) return;
+              if (scope.signal.aborted || timerless && resolvedLanguages.has(ref.language)) return;
               const media = yield this.dispatcher.extract(embed, this.base + ref.path, ref.language, metrics, scope.signal);
               if (media.length) {
                 collected.push(...media);
-                if (!graceTimer) graceTimer = setTimer(signalReady, this.config.successGraceMs);
+                resolvedLanguages.add(ref.language);
+                if (!timerless && !graceTimer) graceTimer = setTimer(signalReady, this.config.successGraceMs);
               }
             }));
             try {
@@ -1603,7 +1607,7 @@ var require_package = __commonJS({
   "package.json"(exports2, module2) {
     module2.exports = {
       name: "nuvio-anime-sama",
-      version: "1.0.4",
+      version: "1.0.5",
       private: true,
       description: "Anime-Sama native Nuvio stream plugin and catalog addon",
       license: "GPL-3.0-or-later",
@@ -1703,8 +1707,10 @@ function sourceTitle(provider, metadata, type) {
   });
 }
 function declaredRange(group) {
-  const m = /\[?\s*[ÉE]pisodes?\s*(\d+)\s*(?:à|a|-)\s*(\d+)/i.exec(group.name);
-  return m ? { first: Number(m[1]), last: Number(m[2]) } : null;
+  const m = /\[?\s*[ÉE]pisodes?\s*(\d+)\s*(?:à|a|-)\s*(\d+|\.{3}|…)/i.exec(group.name);
+  if (!m) return null;
+  const first = Number(m[1]), last = /^\d+$/.test(m[2]) ? Number(m[2]) : Infinity;
+  return first > 0 && last >= first ? { first, last } : null;
 }
 function chooseCatalogEpisode(context, requested) {
   if (context.absolute) return { number: requested, position: requested - 1 };
@@ -1729,19 +1735,21 @@ function episodeReferences(provider, detail, context, season, episode) {
       const r = declaredRange(g);
       return r && rangeNumber >= r.first && rangeNumber <= r.last;
     });
-    let group = ranges.length === 1 && (context.absolute || rangeNumber > selected.position + 1) ? ranges[0] : direct;
+    const useRange = context.absolute || rangeNumber > selected.position + 1;
+    if (useRange && ranges.length > 1) throw failure("SOURCE_SEASON_AMBIGUOUS");
+    let group = ranges.length === 1 && useRange ? ranges[0] : direct;
     if (!group && regular.length === 1 && (context.absolute || rangeNumber > selected.position + 1)) group = regular[0];
     if (!group) throw failure("SOURCE_SEASON_NOT_FOUND");
+    const range = declaredRange(group);
+    if (range && (rangeNumber < range.first || rangeNumber > range.last)) throw failure("SOURCE_EPISODE_UNAVAILABLE");
     const versions = yield provider.versions(group, provider.config.version);
     if (!versions.length) throw failure("SOURCE_VERSION_UNAVAILABLE");
     const refs = versions.flatMap((v) => {
       var _a;
       const first = (_a = v.episodes[0]) == null ? void 0 : _a.number;
-      const target = declaredRange(group) || regular.length === 1 && !direct ? rangeNumber : selected.number;
+      const target = range || regular.length === 1 && !direct ? rangeNumber : selected.number;
       let slot = v.episodes.find((e) => e.number === target);
-      if (!slot && first === 1 && group === direct) slot = v.episodes[selected.position];
-      const range = declaredRange(group);
-      if (range && (rangeNumber < range.first || rangeNumber > range.last)) return [];
+      if (!slot && !range && first === 1 && group === direct) slot = v.episodes[selected.position];
       return (slot == null ? void 0 : slot.servers.length) ? [{ path: v.path, index: slot.index, language: v.language, script: v.script }] : [];
     });
     if (!refs.length) throw failure("SOURCE_EPISODE_UNAVAILABLE");

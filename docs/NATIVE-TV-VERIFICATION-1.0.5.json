@@ -1,0 +1,323 @@
+{
+  "checkedAt": "2026-10-16T18:02:06.818459+00:00",
+  "runtime": "dokar3 quickjs-kt 1.0.5 JVM; exact NuvioTV 1.0.0 timerless polyfills, URL/Jsoup bridges and synchronous text-only HTTP contract; Node HTTP; not Android playback",
+  "nuvioCommit": "9f17e8bf4abc799dc8c832d2894a8b3b166e4353",
+  "pluginVersion": "1.0.5",
+  "settings": {
+    "diagnostics": true
+  },
+  "injectedTmdbKey": false,
+  "manualMappings": false,
+  "bundleSha256": "f1b112552e32fb78e439f97a2e02967630a96f2690d420ae10c2bb36008e6e7b",
+  "cases": [
+    {
+      "title": "One Piece TMDB",
+      "id": "37854",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 12,
+      "resultReadyMs": 7360,
+      "resolveMs": 7363,
+      "runtimeDrainMs": 3,
+      "selection": {
+        "count": 61,
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison1/vostfr/",
+            "index": 0,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/one-piece/saison1/vf/",
+            "index": 0,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 3084,
+        "discoveryMs": 5,
+        "requests": 5,
+        "requestCategories": {
+          "embed": 3,
+          "validation": 2
+        },
+        "networkMs": 3030,
+        "players": 3,
+        "streams": 1,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1569,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 474,
+            "streams": 0,
+            "reason": "HTTP 404"
+          },
+          {
+            "host": "sendvid.com",
+            "source": "Sendvid",
+            "ms": 1036,
+            "streams": 0,
+            "reason": "HTTP 404"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "One Piece IMDb",
+      "id": "tt0388629",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 12,
+      "resultReadyMs": 5848,
+      "resolveMs": 5850,
+      "runtimeDrainMs": 2,
+      "selection": {
+        "count": 61,
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison1/vostfr/",
+            "index": 0,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/one-piece/saison1/vf/",
+            "index": 0,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 1952,
+        "discoveryMs": 3,
+        "requests": 5,
+        "requestCategories": {
+          "embed": 3,
+          "validation": 2
+        },
+        "networkMs": 1910,
+        "players": 3,
+        "streams": 1,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 953,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 404,
+            "streams": 0,
+            "reason": "HTTP 404"
+          },
+          {
+            "host": "sendvid.com",
+            "source": "Sendvid",
+            "ms": 591,
+            "streams": 0,
+            "reason": "HTTP 404"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "One Piece Kitsu",
+      "id": "kitsu:12",
+      "mediaType": "series",
+      "season": 1,
+      "episode": 1,
+      "requests": 12,
+      "resultReadyMs": 5269,
+      "resolveMs": 5272,
+      "runtimeDrainMs": 3,
+      "selection": {
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison1/vostfr/",
+            "index": 0,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/one-piece/saison1/vf/",
+            "index": 0,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 2540,
+        "discoveryMs": 5,
+        "requests": 5,
+        "requestCategories": {
+          "embed": 3,
+          "validation": 2
+        },
+        "networkMs": 2419,
+        "players": 3,
+        "streams": 1,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 996,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 503,
+            "streams": 0,
+            "reason": "HTTP 404"
+          },
+          {
+            "host": "sendvid.com",
+            "source": "Sendvid",
+            "ms": 1036,
+            "streams": 0,
+            "reason": "HTTP 404"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "Jujutsu Kaisen",
+      "id": "95479",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 13,
+      "resultReadyMs": 4947,
+      "resolveMs": 4950,
+      "runtimeDrainMs": 3,
+      "selection": {
+        "count": 59,
+        "refs": [
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison1/vostfr/",
+            "index": 0,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison1/vf/",
+            "index": 0,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 2541,
+        "discoveryMs": 2,
+        "requests": 6,
+        "requestCategories": {
+          "embed": 2,
+          "validation": 4
+        },
+        "networkMs": 2451,
+        "players": 8,
+        "streams": 2,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1327,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1211,
+            "streams": 1
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VF • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    }
+  ]
+}

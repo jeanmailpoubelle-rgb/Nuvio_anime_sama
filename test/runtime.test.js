@@ -2,6 +2,9 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { encodeEpisode } = require('../src/ids');
 const { runNative } = require('./helpers/nuvio-runtime');
+const {version} = require('../package.json');
+const fs = require('node:fs');
+const path = require('node:path');
 
 test('built bundle resolves real-shaped streams in QuickJS with Nuvio URL/fetch/DOM/timer polyfills',async()=>{
   const ref={path:'/catalogue/test/saison1/vostfr/',index:0,language:'vostfr',script:'/catalogue/test/saison1/vostfr/episodes.js'};
@@ -52,7 +55,7 @@ test('fresh-install Nuvio Catalog resolution works without a key and waits for n
 test('Nuvio settings evaluate with the same module wrapper and publish a visible diagnostic toggle',async()=>{
   const result=await runNative({},[],{}, {settingsLayout:true});
   assert.equal(result.calls.length,0);
-  assert.ok(result.streams.some(f=>f.type==='info' && f.label.includes('1.0.4')));
+  assert.ok(result.streams.some(f=>f.type==='info' && f.label.includes(version)));
   assert.equal(result.streams.find(f=>f.key==='diagnostics').type,'toggle');
 });
 test('Ktor empty query/fragment markers do not reject a base URL, while actual URL components remain invalid',async()=>{
@@ -93,7 +96,40 @@ test('timerless Android TV skips dead/duplicate players and retains a healthy al
   assert.equal(result.calls.filter(c=>c.url==='https://ansembed.net/good').length,1);
   assert.equal(result.streams[0].headers.Referer,'https://ansembed.net/good');
 });
+test('timerless TV stops after a working host per edition while preserving both VF and VOSTFR',async()=>{
+  const refs=['vostfr','vf'].map(language=>({path:`/catalogue/test/saison1/${language}/`,index:0,language,script:`/catalogue/test/saison1/${language}/episodes.js`}));
+  const routes={};
+  for(const ref of refs) {
+    routes['https://domain-b.example'+ref.script]=`eps1=['https://ansembed.net/${ref.language}'];eps2=['https://slow.test/${ref.language}'];`;
+    routes['https://ansembed.net/'+ref.language]=`<video src='https://cdn.test/${ref.language}.mp4'></video>`;
+    routes[`https://cdn.test/${ref.language}.mp4`]='';
+  }
+  const result=await runNative({animeSamaBaseUrl:'https://domain-b.example'},[encodeEpisode(refs),'tv',1,1],routes,{tvRuntime:true});
+  assert.deepEqual(result.streams.map(s=>s.version).sort(),['VF','VOSTFR']);
+  assert.ok(!result.calls.some(c=>c.url.includes('slow.test')),'a secondary blocking host must not delay an already working edition');
+});
 test('newer timerless TV binary-capable polyfills retain compatibility with the same bundle',async()=>{
   const result=await runNative({},['37854','tv',1,1],automaticRoutes(),{tvRuntime:true,modernTv:true});
   assert.equal(result.streams.length,1,result.logs.join('\n'));
+});
+test('phone and timerless TV resolve S23 E1180 through Saga 12 using the correct cached player position',async()=>{
+  const routes=automaticRoutes();
+  const base='https://anime-sama.to',group='/catalogue/one-piece/saison12/vostfr/';
+  routes['https://catalog.nuvio.tv/meta/series/tmdb:37854.json']=JSON.stringify({meta:{name:'One Piece',genres:['Animation'],released:'1999-10-20',videos:[
+    ...Array.from({length:1155},(_,i)=>({season:22,episode:i+1})),
+    ...Array.from({length:25},(_,i)=>({season:23,episode:1156+i}))
+  ]}});
+  routes[base+'/catalogue/one-piece/']='<h1>One Piece</h1><script>panneauAnime("Saga 11 [Episode 1089 à 1155]","saison11/vostfr/");panneauAnime("Saga 12 [Episode 1156 à ...]","saison12/vostfr/");</script>';
+  routes[base+group]=fs.readFileSync(path.join(__dirname,'fixtures/one-piece-elbaf.html'),'utf8');
+  routes[base+group+'episodes.js?filever=4747']='eps1='+JSON.stringify(Array.from({length:25},(_,i)=>`https://ansembed.net/episode-${1156+i}`));
+  routes['https://ansembed.net/episode-1180']="<video src='https://cdn.test/video.mp4'></video>";
+  for(const tvRuntime of [false,true]) {
+    const result=await runNative({diagnostics:true},['37854','tv',23,1180],routes,{tvRuntime});
+    assert.equal(result.streams.length,1,result.logs.join('\n'));
+    assert.equal(result.streams[0].headers.Referer,'https://ansembed.net/episode-1180');
+    assert.equal(result.calls.filter(c=>c.url.includes('episodes.js')).length,1,'reuse discovery without a second script fetch');
+    assert.ok(result.calls.some(c=>c.url===base+group));
+    assert.ok(!result.calls.some(c=>/saison23|episode-1156|saison11\/vostfr\//.test(c.url)));
+    assert.ok(result.logs.some(l=>l.includes('"index":24')));
+  }
 });

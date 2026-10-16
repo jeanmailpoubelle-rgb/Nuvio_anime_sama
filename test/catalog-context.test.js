@@ -3,6 +3,9 @@ const assert = require('node:assert/strict');
 const Catalog = require('../src/catalog-context');
 const {sourceTitle,chooseCatalogEpisode,episodeReferences} = require('../src/native');
 const {AnimeSamaProvider} = require('../src/provider');
+const Pages = require('../src/pages');
+const fs = require('node:fs');
+const path = require('node:path');
 const titleHtml = '<script type="application/ld+json">/* <![CDATA[ */'+JSON.stringify({'@type':'TVSeries',name:'ONE PIECE',genre:['Animation','Adventure'],startDate:'1999-10-20'})+'/* ]]> */</script>';
 const seasonHtml = '<section class="episode_list">'+[62,63,64].map(n=>`<article class="episode"><span class="episode_number">${n}</span><h3 class="episode_title"><a>Episode ${n}</a></h3></article>`).join('')+'</section>';
 test('native catalog IDs accept TMDB, IMDb and Kitsu with episode suffixes',()=>{
@@ -54,6 +57,59 @@ test('declared source saga ranges map seasonal or continuous catalog episode num
     const refs=await episodeReferences(provider,detail,context,season,episode);assert.equal(refs[0].path,group2.path+'vostfr/');assert.equal(refs[0].index,0);
   }
   assert.ok(calls.every(p=>p===group2.path));
+});
+test('ongoing sagas map catalog seasons and absolute/local numbers to exact published slots',async()=>{
+  const html=fs.readFileSync(path.join(__dirname,'fixtures/one-piece-elbaf.html'),'utf8');
+  const egghead=fs.readFileSync(path.join(__dirname,'fixtures/one-piece-egghead.html'),'utf8');
+  const closed={path:'/catalogue/one-piece/saison11/',name:'Saga 11 [Episode 1089 à 1155]'};
+  const open={path:'/catalogue/one-piece/saison12/',name:'Saga 12 [Episode 1156 à ...]'};
+  const detail={path:'/catalogue/one-piece/',groups:[closed,open]};
+  const rows=(first,count)=>Array.from({length:count},(_,i)=>({episode_number:first+i}));
+  const season23={episodes:rows(1156,25),absoluteOffset:1155};
+  const calls=[];
+  const provider={config:{version:'all'},versions:async group=>{
+    calls.push(group.path);
+    const count=group===closed?74:25;
+    const script='eps1='+JSON.stringify(Array.from({length:count},(_,i)=>`https://player.test/${i}`));
+    const episodes=Pages.episodeSlots(script,group===closed?egghead:html,'https://domain-b.example');
+    return ['vostfr','vf'].map(language=>({path:group.path+language+'/',language,episodes:language==='vf'?episodes.slice(0,2):episodes}));
+  }};
+  for(const [context,season,episode,group,index] of [
+    [season23,23,1180,open,24],[season23,23,25,open,24],
+    [season23,23,1156,open,0],[season23,23,1,open,0],
+    [{episodes:rows(1089,67),absoluteOffset:1088},22,1155,closed,73],
+    [{absolute:true},1,1155,closed,73],[{absolute:true},1,1180,open,24],
+    [{episodes:rows(1,25),absoluteOffset:1155},23,25,open,24]
+  ]) {
+    const refs=await episodeReferences(provider,detail,context,season,episode);
+    assert.equal(refs[0].path,group.path+'vostfr/');assert.equal(refs[0].index,index);
+    assert.ok(refs.every(r=>r.index===index));
+    if(index>1)assert.ok(refs.every(r=>r.language==='vostfr'),'do not substitute an earlier VF episode');
+  }
+  for(const range of ['[Episode 1156 à ...]','[Épisodes 1156 à …]']) {
+    const unicode={...detail,groups:[closed,{...open,name:range}]};
+    assert.equal((await episodeReferences(provider,unicode,season23,23,1180))[0].index,24);
+  }
+  await assert.rejects(episodeReferences(provider,detail,{absolute:true},1,1181),{code:'SOURCE_EPISODE_UNAVAILABLE'});
+  await assert.rejects(episodeReferences(provider,detail,{episodes:rows(1156,26),absoluteOffset:1155},23,1181),{code:'SOURCE_EPISODE_UNAVAILABLE'});
+  assert.ok(calls.every(p=>[closed.path,open.path].includes(p)));
+});
+test('ambiguous ranges and conflicting source labels fail safely without positional substitution',async()=>{
+  const group={path:'/catalogue/one-piece/saison12/',name:'Saga 12 [Episode 1156 à ...]'};
+  const context={episodes:Array.from({length:25},(_,i)=>({episode_number:1156+i})),absoluteOffset:1155};
+  let calls=0;
+  const provider={config:{version:'vostfr'},versions:async()=>{
+    calls++;
+    return [{path:group.path+'vostfr/',language:'vostfr',episodes:Array.from({length:25},(_,index)=>({index,number:index+1,servers:['https://player.test/wrong']}))}];
+  }};
+  const detail={path:'/catalogue/one-piece/',groups:[group]};
+  // Even when its path happens to equal the catalog season, a declared source
+  // range must agree with the numbered slot. A malformed helper cannot play E25.
+  await assert.rejects(episodeReferences(provider,detail,context,12,1180),{code:'SOURCE_EPISODE_UNAVAILABLE'});
+  assert.equal(calls,1);
+  detail.groups.push({path:'/catalogue/one-piece/saison13/',name:'Saga 13 [Episode 1180 à ...]'});
+  await assert.rejects(episodeReferences(provider,detail,context,23,1180),{code:'SOURCE_SEASON_AMBIGUOUS'});
+  assert.equal(calls,1,'reject overlapping saga ranges before network discovery');
 });
 test('unpublished VF slots stay unavailable while known VOSTFR slots resolve',async()=>{
   const g={path:'/catalogue/test/saison1/',name:'Saison 1'};

@@ -1,0 +1,19 @@
+<!-- Reduced live numbering scripts from saison12/vostfr, checked 2026-10-16.
+     No player URLs or remote scripts. The later reset replaces the default list. -->
+<script src="episodes.js?filever=4747" defer></script>
+<script>$(document).ready(function () { resetListe(); finirListe(1); });</script>
+<script>
+$(document).ready(function () {
+    // finirListeOP(1); commented examples are not calls.
+    function finirListeOP(debut) {
+        for (var i = debut; i <= (1155 + (tailleEpisodes - epRetards)); i++) {
+            var optEpisode = document.createElement('option');
+            optEpisode.text = 'Episode ' + i;
+            listeEpisodes.appendChild(optEpisode);
+        }
+        setCorrectEpisode();
+    }
+    resetListe();
+    finirListeOP(1156);
+});
+</script>

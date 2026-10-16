@@ -1,0 +1,775 @@
+{
+  "checkedAt": "2026-10-16T18:00:42.434Z",
+  "environment": "Cloud development machine through configured HTTPS proxy; HTTP validation, no device playback",
+  "browsing": {
+    "search": {
+      "ms": 1052,
+      "titles": [
+        "Jujutsu Kaisen"
+      ],
+      "passed": true
+    },
+    "latest": {
+      "ms": 1601,
+      "count": 24
+    },
+    "metadata": {
+      "ms": 1503,
+      "title": "Jujutsu Kaisen",
+      "year": 2020,
+      "groups": [
+        {
+          "name": "Saison 1",
+          "key": 1
+        },
+        {
+          "name": "Film",
+          "key": 2
+        },
+        {
+          "name": "Saison 2",
+          "key": 3
+        },
+        {
+          "name": "Saison 3",
+          "key": 4
+        }
+      ],
+      "episodes": 60,
+      "versions": [
+        "vostfr",
+        "vf"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "test": "Jujutsu Kaisen S1 E1 VOSTFR",
+      "path": "/catalogue/jujutsu-kaisen/saison1/vostfr/",
+      "episodeIndex": 0,
+      "elapsedMs": 3330,
+      "discoveryMs": 36,
+      "requests": 11,
+      "requestCategories": {
+        "discovery": 1,
+        "embed": 5,
+        "validation": 5
+      },
+      "networkMs": 10074,
+      "players": 4,
+      "streams": 2,
+      "hosts": [
+        {
+          "host": "ansembed.net",
+          "source": "ANSEmbed",
+          "ms": 1765,
+          "streams": 1
+        },
+        {
+          "host": "smoothpre.com",
+          "source": "Smoothpre",
+          "ms": 3270,
+          "streams": 0,
+          "reason": "ABORTED"
+        },
+        {
+          "host": "uqload.vc",
+          "source": "uqload.vc",
+          "ms": 1853,
+          "streams": 1
+        },
+        {
+          "host": "jeremyparticipantanything.com",
+          "source": "jeremyparticipantanything.com",
+          "ms": 3269,
+          "streams": 0,
+          "reason": "ABORTED"
+        }
+      ],
+      "returned": [
+        {
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ],
+          "codecs": [
+            "avc1.640028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VOSTFR • 1080p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": []
+        },
+        {
+          "source": "uqload.vc",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ],
+          "codecs": [
+            "avc1.640028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VOSTFR • 1080p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": [
+            {
+              "language": "Upload captions",
+              "name": "Upload captions"
+            }
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096,
+        "contentType": "video/MP2T",
+        "requests": 3
+      }
+    },
+    {
+      "test": "Jujutsu Kaisen S1 E1 VF",
+      "path": "/catalogue/jujutsu-kaisen/saison1/vf/",
+      "episodeIndex": 0,
+      "elapsedMs": 2890,
+      "discoveryMs": 87,
+      "requests": 11,
+      "requestCategories": {
+        "discovery": 1,
+        "embed": 4,
+        "validation": 6
+      },
+      "networkMs": 8651,
+      "players": 4,
+      "streams": 3,
+      "hosts": [
+        {
+          "host": "ansembed.net",
+          "source": "ANSEmbed",
+          "ms": 1298,
+          "streams": 1
+        },
+        {
+          "host": "smoothpre.com",
+          "source": "Smoothpre",
+          "ms": 2523,
+          "streams": 1
+        },
+        {
+          "host": "uqload.vc",
+          "source": "uqload.vc",
+          "ms": 2034,
+          "streams": 1
+        },
+        {
+          "host": "jeremyparticipantanything.com",
+          "source": "jeremyparticipantanything.com",
+          "ms": 2802,
+          "streams": 0,
+          "reason": "ABORTED"
+        }
+      ],
+      "returned": [
+        {
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audio": [
+            "fr"
+          ],
+          "subtitles": null,
+          "codecs": [
+            "avc1.640028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VF • 1080p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": []
+        },
+        {
+          "source": "uqload.vc",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audio": [
+            "fr"
+          ],
+          "subtitles": null,
+          "codecs": [
+            "avc1.640028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VF • 1080p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": [
+            {
+              "language": "Upload captions",
+              "name": "Upload captions"
+            }
+          ]
+        },
+        {
+          "source": "Smoothpre",
+          "quality": "720p",
+          "version": "VF",
+          "type": "hls",
+          "audio": [
+            "fr"
+          ],
+          "subtitles": null,
+          "codecs": [
+            "avc1.64001f",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VF • 720p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": []
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096,
+        "contentType": "video/MP2T",
+        "requests": 3
+      }
+    },
+    {
+      "test": "Jujutsu Kaisen S3 E1 (recent season)",
+      "path": "/catalogue/jujutsu-kaisen/saison3/vostfr/",
+      "episodeIndex": 0,
+      "elapsedMs": 3063,
+      "discoveryMs": 100,
+      "requests": 13,
+      "requestCategories": {
+        "discovery": 1,
+        "embed": 6,
+        "validation": 6
+      },
+      "networkMs": 10440,
+      "players": 5,
+      "streams": 2,
+      "hosts": [
+        {
+          "host": "ansembed.net",
+          "source": "ANSEmbed",
+          "ms": 1536,
+          "streams": 1
+        },
+        {
+          "host": "uqload.vc",
+          "source": "uqload.vc",
+          "ms": 1449,
+          "streams": 1
+        },
+        {
+          "host": "jeremyparticipantanything.com",
+          "source": "jeremyparticipantanything.com",
+          "ms": 2951,
+          "streams": 0,
+          "reason": "ABORTED"
+        },
+        {
+          "host": "dingtezuni.com",
+          "source": "callistanise.com",
+          "ms": 2959,
+          "streams": 0,
+          "reason": "HLS variants unavailable."
+        },
+        {
+          "host": "lpayer.embed4me.com",
+          "source": "lpayer.embed4me.com",
+          "ms": 1502,
+          "streams": 0,
+          "reason": "ABORTED"
+        }
+      ],
+      "returned": [
+        {
+          "source": "uqload.vc",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ],
+          "codecs": [
+            "avc1.640028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VOSTFR • 1080p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": [
+            {
+              "language": "Upload captions",
+              "name": "Upload captions"
+            }
+          ]
+        },
+        {
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ],
+          "codecs": [
+            "avc1.640028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VOSTFR • 1080p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": []
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096,
+        "contentType": "video/MP2T",
+        "requests": 3
+      }
+    },
+    {
+      "test": "One Piece saga 2 E62 (older)",
+      "path": "/catalogue/one-piece/saison2/vostfr/",
+      "episodeIndex": 0,
+      "elapsedMs": 1202,
+      "discoveryMs": 35,
+      "requests": 4,
+      "requestCategories": {
+        "discovery": 1,
+        "embed": 1,
+        "validation": 2
+      },
+      "networkMs": 1190,
+      "players": 1,
+      "streams": 1,
+      "hosts": [
+        {
+          "host": "ansembed.net",
+          "source": "ANSEmbed",
+          "ms": 1167,
+          "streams": 1
+        }
+      ],
+      "returned": [
+        {
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ],
+          "codecs": [
+            "avc1.640028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VOSTFR • 720p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": []
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096,
+        "contentType": "video/MP2T",
+        "requests": 3
+      }
+    },
+    {
+      "test": "One Piece first film",
+      "path": "/catalogue/one-piece/film/vostfr/",
+      "episodeIndex": 0,
+      "elapsedMs": 2717,
+      "discoveryMs": 46,
+      "requests": 5,
+      "requestCategories": {
+        "discovery": 1,
+        "embed": 2,
+        "validation": 2
+      },
+      "networkMs": 3876,
+      "players": 2,
+      "streams": 1,
+      "hosts": [
+        {
+          "host": "ansembed.net",
+          "source": "ANSEmbed",
+          "ms": 1169,
+          "streams": 1
+        },
+        {
+          "host": "lpayer.embed4me.com",
+          "source": "lpayer.embed4me.com",
+          "ms": 2670,
+          "streams": 0,
+          "reason": "ABORTED"
+        }
+      ],
+      "returned": [
+        {
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ],
+          "codecs": [
+            "avc1.640028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VOSTFR • 1080p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": []
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096,
+        "contentType": "video/MP2T",
+        "requests": 3
+      }
+    },
+    {
+      "test": "Your Name film",
+      "path": "/catalogue/your-name/film/vostfr/",
+      "episodeIndex": 0,
+      "elapsedMs": 2374,
+      "discoveryMs": 73,
+      "requests": 7,
+      "requestCategories": {
+        "discovery": 1,
+        "embed": 2,
+        "validation": 4
+      },
+      "networkMs": 3161,
+      "players": 2,
+      "streams": 1,
+      "hosts": [
+        {
+          "host": "ansembed.net",
+          "source": "ANSEmbed",
+          "ms": 800,
+          "streams": 1
+        },
+        {
+          "host": "smoothpre.com",
+          "source": "Smoothpre",
+          "ms": 2301,
+          "streams": 0,
+          "reason": "HLS variants unavailable."
+        }
+      ],
+      "returned": [
+        {
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ],
+          "codecs": [
+            "avc1.640028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VOSTFR • 1080p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": []
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096,
+        "contentType": "video/MP2T",
+        "requests": 3
+      }
+    },
+    {
+      "test": "Akashic Records E1",
+      "path": "/catalogue/akashic-records/saison1/vostfr/",
+      "episodeIndex": 0,
+      "elapsedMs": 750,
+      "discoveryMs": 44,
+      "requests": 4,
+      "requestCategories": {
+        "discovery": 1,
+        "embed": 1,
+        "validation": 2
+      },
+      "networkMs": 742,
+      "players": 1,
+      "streams": 1,
+      "hosts": [
+        {
+          "host": "ansembed.net",
+          "source": "ANSEmbed",
+          "ms": 706,
+          "streams": 1
+        }
+      ],
+      "returned": [
+        {
+          "source": "ANSEmbed",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "audio": null,
+          "subtitles": [
+            "fr"
+          ],
+          "codecs": [
+            "avc1.4d4028",
+            "mp4a.40.2"
+          ],
+          "videoRange": "SDR",
+          "name": "Anime-Sama • VOSTFR • 720p",
+          "playbackHeaderNames": [
+            "User-Agent",
+            "Referer",
+            "Origin"
+          ],
+          "externalSubtitles": []
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096,
+        "contentType": "video/MP2T",
+        "requests": 3
+      }
+    },
+    {
+      "test": "Akashic Records E2 (known dead/placeholder)",
+      "path": "/catalogue/akashic-records/saison1/vostfr/",
+      "episodeIndex": 1,
+      "elapsedMs": 2226,
+      "discoveryMs": 49,
+      "requests": 4,
+      "requestCategories": {
+        "discovery": 1,
+        "embed": 2,
+        "validation": 1
+      },
+      "networkMs": 2457,
+      "players": 2,
+      "streams": 0,
+      "hosts": [
+        {
+          "host": "ansembed.net",
+          "source": "ANSEmbed",
+          "ms": 234,
+          "streams": 0,
+          "reason": "HTTP 404"
+        },
+        {
+          "host": "sendvid.com",
+          "source": "Sendvid",
+          "ms": 2177,
+          "streams": 0,
+          "reason": "Sendvid unavailable-video placeholder"
+        }
+      ],
+      "returned": []
+    }
+  ],
+  "simultaneous": {
+    "ms": 2397,
+    "counts": [
+      3,
+      5
+    ],
+    "requests": [
+      15,
+      15
+    ]
+  },
+  "nativeBundle": {
+    "ms": 1670,
+    "count": 5,
+    "streams": [
+      {
+        "source": "ANSEmbed",
+        "quality": "1080p",
+        "version": "VF",
+        "type": "hls",
+        "audio": [
+          "fr"
+        ],
+        "subtitles": null,
+        "codecs": [
+          "avc1.640028",
+          "mp4a.40.2"
+        ],
+        "videoRange": "SDR",
+        "name": "Anime-Sama • VF • 1080p",
+        "playbackHeaderNames": [
+          "User-Agent",
+          "Referer",
+          "Origin"
+        ],
+        "externalSubtitles": []
+      },
+      {
+        "source": "uqload.vc",
+        "quality": "1080p",
+        "version": "VF",
+        "type": "hls",
+        "audio": [
+          "fr"
+        ],
+        "subtitles": null,
+        "codecs": [
+          "avc1.640028",
+          "mp4a.40.2"
+        ],
+        "videoRange": "SDR",
+        "name": "Anime-Sama • VF • 1080p",
+        "playbackHeaderNames": [
+          "User-Agent",
+          "Referer",
+          "Origin"
+        ],
+        "externalSubtitles": [
+          {
+            "language": "Upload captions",
+            "name": "Upload captions"
+          }
+        ]
+      },
+      {
+        "source": "Voe",
+        "quality": null,
+        "version": "VF",
+        "type": "video",
+        "audio": [
+          "fr"
+        ],
+        "subtitles": null,
+        "codecs": null,
+        "videoRange": null,
+        "name": "Anime-Sama • VF",
+        "playbackHeaderNames": [
+          "User-Agent",
+          "Referer",
+          "Origin"
+        ],
+        "externalSubtitles": []
+      },
+      {
+        "source": "Voe",
+        "quality": "720p",
+        "version": "VF",
+        "type": "hls",
+        "audio": [
+          "fr"
+        ],
+        "subtitles": null,
+        "codecs": [
+          "avc1.64001f",
+          "mp4a.40.2"
+        ],
+        "videoRange": "SDR",
+        "name": "Anime-Sama • VF • 720p",
+        "playbackHeaderNames": [
+          "User-Agent",
+          "Referer",
+          "Origin"
+        ],
+        "externalSubtitles": []
+      },
+      {
+        "source": "Smoothpre",
+        "quality": "720p",
+        "version": "VF",
+        "type": "hls",
+        "audio": [
+          "fr"
+        ],
+        "subtitles": null,
+        "codecs": [
+          "avc1.64001f",
+          "mp4a.40.2"
+        ],
+        "videoRange": "SDR",
+        "name": "Anime-Sama • VF • 720p",
+        "playbackHeaderNames": [
+          "User-Agent",
+          "Referer",
+          "Origin"
+        ],
+        "externalSubtitles": []
+      }
+    ]
+  },
+  "httpChain": {
+    "catalog": 1,
+    "episodes": 60,
+    "streams": 6
+  }
+}

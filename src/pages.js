@@ -77,7 +77,7 @@ function episodeLabels(html, count) {
   const labels = [];
   let specials = 0;
   for (const script of inlineScripts($)) {
-    for (const { name, args } of Js.calls(script, ['resetListe','creerListe','newSP','newSPF','finirListe'])) {
+    for (const { name, args } of Js.calls(script, ['resetListe','creerListe','newSP','newSPF','finirListe','finirListeOP'])) {
       if (name === 'resetListe') { labels.length = 0; specials = 0; }
       else if (name === 'newSP' || name === 'newSPF') {
         if (args.length === 1 && args[0].kind === 's' && labels.length < count) { labels.push((name === 'newSP' ? 'Épisode ' : '') + args[0].text); specials++; }
@@ -88,6 +88,11 @@ function episodeLabels(html, count) {
         for (let n = start; n <= end && labels.length < count; n++) labels.push(`Épisode ${n}`);
       } else if (name === 'finirListe' && args.length === 1 && /^\d+$/.test(args[0].text)) {
         for (let n = Number(args[0].text); n <= count - specials && labels.length < count; n++) labels.push(`Épisode ${n}`);
+      } else if (name === 'finirListeOP' && args.length === 1 && /^[1-9]\d*$/.test(args[0].text)) {
+        // The site's ongoing One Piece helper numbers the remaining real slots
+        // from its literal start. Read the call, never evaluate the page function
+        // or hardcode the current saga/episode count: new releases extend naturally.
+        for (let n = Number(args[0].text); labels.length < count; n++) labels.push(`Épisode ${n}`);
       }
     }
   }

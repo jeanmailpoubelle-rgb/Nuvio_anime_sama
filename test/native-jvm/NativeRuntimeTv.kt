@@ -11,6 +11,8 @@ import java.net.http.*
 
 fun main(args: Array<String>) { runBlocking {
     val (bundle,transport,id,type)=args.toList()
+    val season=args.getOrNull(4)?.toInt()?:1;val episode=args.getOrNull(5)?.toInt()?:1
+    var selection:JsonElement=JsonNull;var resolution:JsonElement=JsonNull
     val started=System.currentTimeMillis()
     var result="[]";var capturedAt=started;var finishedAt=started;var requests=0
     val http=HttpClient.newHttpClient()
@@ -21,14 +23,19 @@ fun main(args: Array<String>) { runBlocking {
     withTimeout(60000) { quickJs(Dispatchers.Default) {
         define("console") {
             for (name in listOf("log","warn","error","info","debug")) function(name) { a ->
-                System.err.println(a.joinToString(" "));null
+                System.err.println(a.joinToString(" "))
+                if(a.size>=3 && a[0].toString()=="[Anime-Sama]") {
+                    if(a[1].toString()=="episode")selection=Json.parseToJsonElement(a[2].toString())
+                }
+                if(a.size>=2 && a[0].toString()=="[Anime-Sama] resolution")resolution=Json.parseToJsonElement(a[1].toString())
+                null
             }
         }
         function("__get_scraper_id") { "anime-sama" }
-        function("__get_scraper_settings") { "{}" }
+        function("__get_scraper_settings") { "{\"diagnostics\":true}" }
         function("__get_tmdb_api_key") { "" }
         function("__get_call_args") {
-            JsonObject(mapOf("tmdbId" to JsonPrimitive(id),"mediaType" to JsonPrimitive(type),"season" to JsonPrimitive(1),"episode" to JsonPrimitive(1))).toString()
+            JsonObject(mapOf("tmdbId" to JsonPrimitive(id),"mediaType" to JsonPrimitive(type),"season" to JsonPrimitive(season),"episode" to JsonPrimitive(episode))).toString()
         }
         function("__capture_result") { a -> result=a[0].toString();capturedAt=System.currentTimeMillis();null }
         val bindings=TvBindings()
@@ -53,8 +60,8 @@ fun main(args: Array<String>) { runBlocking {
     val hls=streams.firstOrNull{it.jsonObject["type"]?.jsonPrimitive?.content=="hls"}
     val mediaSample=hls?.let{Json.parseToJsonElement(localRequest("/sample",it.toString()))}?:JsonNull
     val safe=JsonArray(streams.map{JsonObject(it.jsonObject.filterKeys{k->k in listOf("title","source","quality","version","type","audioLanguages","subtitleLanguages")})})
-    val report=JsonObject(mapOf("id" to JsonPrimitive(id),"mediaType" to JsonPrimitive(type),"season" to JsonPrimitive(1),"episode" to JsonPrimitive(1),
+    val report=JsonObject(mapOf("id" to JsonPrimitive(id),"mediaType" to JsonPrimitive(type),"season" to JsonPrimitive(season),"episode" to JsonPrimitive(episode),
         "requests" to JsonPrimitive(requests),"resultReadyMs" to JsonPrimitive(capturedAt-started),"resolveMs" to JsonPrimitive(finishedAt-started),
-        "runtimeDrainMs" to JsonPrimitive(finishedAt-capturedAt),"streams" to safe,"mediaSample" to mediaSample))
+        "runtimeDrainMs" to JsonPrimitive(finishedAt-capturedAt),"selection" to selection,"resolution" to resolution,"streams" to safe,"mediaSample" to mediaSample))
     println(report)
 } }

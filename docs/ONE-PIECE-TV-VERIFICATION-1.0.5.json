@@ -1,0 +1,361 @@
+{
+  "checkedAt": "2026-10-16T18:00:58.508729+00:00",
+  "runtime": "dokar3 quickjs-kt 1.0.5 JVM; exact NuvioTV 1.0.0 timerless polyfills, URL/Jsoup bridges and synchronous text-only HTTP contract; Node HTTP; not Android playback",
+  "nuvioCommit": "9f17e8bf4abc799dc8c832d2894a8b3b166e4353",
+  "pluginVersion": "1.0.5",
+  "settings": {
+    "diagnostics": true
+  },
+  "injectedTmdbKey": false,
+  "manualMappings": false,
+  "bundleSha256": "f1b112552e32fb78e439f97a2e02967630a96f2690d420ae10c2bb36008e6e7b",
+  "cases": [
+    {
+      "title": "One Piece TMDB",
+      "id": "37854",
+      "mediaType": "tv",
+      "season": 23,
+      "episode": 1180,
+      "requests": 11,
+      "resultReadyMs": 7077,
+      "resolveMs": 7081,
+      "runtimeDrainMs": 4,
+      "selection": {
+        "count": 25,
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison12/vostfr/",
+            "index": 24,
+            "language": "vostfr"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 1071,
+        "discoveryMs": 2,
+        "requests": 3,
+        "requestCategories": {
+          "embed": 1,
+          "validation": 2
+        },
+        "networkMs": 1028,
+        "players": 4,
+        "streams": 1,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1069,
+            "streams": 1
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "One Piece IMDb",
+      "id": "tt0388629",
+      "mediaType": "tv",
+      "season": 23,
+      "episode": 1180,
+      "requests": 11,
+      "resultReadyMs": 4809,
+      "resolveMs": 4811,
+      "runtimeDrainMs": 2,
+      "selection": {
+        "count": 25,
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison12/vostfr/",
+            "index": 24,
+            "language": "vostfr"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 815,
+        "discoveryMs": 2,
+        "requests": 3,
+        "requestCategories": {
+          "embed": 1,
+          "validation": 2
+        },
+        "networkMs": 764,
+        "players": 4,
+        "streams": 1,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 813,
+            "streams": 1
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "One Piece season-local",
+      "id": "37854",
+      "mediaType": "tv",
+      "season": 23,
+      "episode": 25,
+      "requests": 11,
+      "resultReadyMs": 4846,
+      "resolveMs": 4848,
+      "runtimeDrainMs": 2,
+      "selection": {
+        "count": 25,
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison12/vostfr/",
+            "index": 24,
+            "language": "vostfr"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 1216,
+        "discoveryMs": 1,
+        "requests": 3,
+        "requestCategories": {
+          "embed": 1,
+          "validation": 2
+        },
+        "networkMs": 1127,
+        "players": 4,
+        "streams": 1,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1215,
+            "streams": 1
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "One Piece Kitsu",
+      "id": "kitsu:12",
+      "mediaType": "series",
+      "season": 1,
+      "episode": 1180,
+      "requests": 11,
+      "resultReadyMs": 3653,
+      "resolveMs": 3657,
+      "runtimeDrainMs": 4,
+      "selection": {
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison12/vostfr/",
+            "index": 24,
+            "language": "vostfr"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 754,
+        "discoveryMs": 2,
+        "requests": 3,
+        "requestCategories": {
+          "embed": 1,
+          "validation": 2
+        },
+        "networkMs": 711,
+        "players": 4,
+        "streams": 1,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 752,
+            "streams": 1
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "One Piece end of Egghead",
+      "id": "37854",
+      "mediaType": "tv",
+      "season": 22,
+      "episode": 1155,
+      "requests": 10,
+      "resultReadyMs": 4830,
+      "resolveMs": 4832,
+      "runtimeDrainMs": 2,
+      "selection": {
+        "count": 67,
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison11/vostfr/",
+            "index": 73,
+            "language": "vostfr"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 1272,
+        "discoveryMs": 4,
+        "requests": 3,
+        "requestCategories": {
+          "embed": 1,
+          "validation": 2
+        },
+        "networkMs": 1200,
+        "players": 2,
+        "streams": 1,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1267,
+            "streams": 1
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "One Piece start of Elbaf",
+      "id": "37854",
+      "mediaType": "tv",
+      "season": 23,
+      "episode": 1156,
+      "requests": 11,
+      "resultReadyMs": 5029,
+      "resolveMs": 5032,
+      "runtimeDrainMs": 3,
+      "selection": {
+        "count": 25,
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison12/vostfr/",
+            "index": 0,
+            "language": "vostfr"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 1286,
+        "discoveryMs": 1,
+        "requests": 3,
+        "requestCategories": {
+          "embed": 1,
+          "validation": 2
+        },
+        "networkMs": 1207,
+        "players": 3,
+        "streams": 1,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1284,
+            "streams": 1
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    }
+  ]
+}

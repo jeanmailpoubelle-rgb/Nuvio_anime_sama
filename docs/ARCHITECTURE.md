@@ -94,7 +94,11 @@ starting more work and after HTTP/body reads. No sleeps, spin loops or invented
 timer APIs are used. Host extraction is sequential only in that runtime because
 its native HTTP blocks the JS thread: finishing the preferred host's validation
 before launching another preserves already discovered healthy streams. Existing
-grace/host/resolution budgets still prevent further stages once expired.
+host/resolution budgets still prevent further stages once expired. From 1.0.5,
+TV stops at the first successful host per edition; it skips other hosts of that
+edition but still attempts other selected languages. Its synchronous HTTP cannot
+enforce a short collection grace while another request is blocking. Phone/Node
+retain their concurrent collection window.
 
 A synchronous native call cannot be interrupted by these JS checkpoints. The
 app's HTTP timeout/cancellation still bounds that call; it can exceed the plugin's
@@ -135,6 +139,10 @@ Source group ranges map continuous catalog numbers to the right saga. Real array
 positions remain authoritative, including missing VF entries. Equal total episode
 counts and a first source episode numbered 1 are no longer required. Ambiguous
 season arrangements still need an explicit map rather than invented offsets.
+Open-ended ranges select ongoing sagas, but an actual source label and populated
+player slot are required. The literal `finirListeOP(start)` helper fills remaining
+positions from its start number, including after named specials. Declared ranges
+disable positional fallback when the parsed source episode label disagrees.
 
 A diagnostic toggle logs catalog identity, selected relative path/index, timings
 and safe failure codes. Current Nuvio 0.5.9 injects the TMDB key and its polyfills

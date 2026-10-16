@@ -181,3 +181,26 @@ alongside the phone runtime; the live TV report targets the user's 1.0.0 release
 
 Compatibility findings refer to this identified runtime source snapshot; they do
 not establish playback on an uninspected installed APK or physical Android TV.
+
+## One Piece ongoing saga follow-up (1.0.5)
+
+The user's Nuvio Catalog selection `tt0388629:23:1180` was compared with the live
+Anime-Sama title, `saison11/vostfr/`, `saison12/vostfr/` and their episode scripts
+on 2026-10-16. Nuvio's S23 lists global episodes 1156–1180; Anime-Sama's Saga 12
+declares an open-ended range beginning at 1156. Its inline `finirListeOP(1156)`
+renumbers the real slots instead of using the default `finirListe(1)` labels.
+Saga 11 also calls `finirListeOP(1134)` after seven named recap specials.
+
+The reference `AnimeSamaPages.kt`/`JsData.kt` known-call parser was rechecked; it
+does not yet recognize this helper. The Nuvio port extends that same literal-only
+approach without executing remote JavaScript. Reduced numbering-only fixtures
+preserve both live call sequences; player data in deterministic tests is synthetic.
+Native matching accepts numeric and open-ended declared ranges, then requires
+the actual source episode number and preserves all intervening special positions.
+
+The exact native JVM harness now accepts season/episode arguments and records
+sanitized selected relative references. Its One Piece suite asserts the group and
+zero-based position, not just the presence of any playable video. TV stops after
+a successful host per requested edition, avoiding a measured 12-second wait on
+a dead secondary player after ANSEmbed had already succeeded. Phone extraction
+remains concurrent, and missing VF editions remain unavailable.

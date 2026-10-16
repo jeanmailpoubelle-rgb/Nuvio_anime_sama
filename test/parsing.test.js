@@ -49,6 +49,26 @@ test('continuous saga numbering reads slot zero, named films keep titles',() => 
   const film=Pages.episodeSlots(fixture('op-films.js'),fixture('op-films.html'),base+'/catalogue/one-piece/film/vostfr/');
   assert.equal(film.length,17);assert.equal(film[1].name,"L'Aventure de l'Île de l'Horloge");assert.equal(film.at(-1).name,'RED');
 });
+test('ongoing saga helper replaces default numbering and grows with real sparse player arrays',() => {
+  const html=fixture('one-piece-elbaf.html');
+  for(const count of [25,26]) {
+    const players=Array.from({length:count},(_,i)=>i===10?null:`https://player.test/episode-${1156+i}`);
+    const slots=Pages.episodeSlots('eps1='+JSON.stringify(players),html,base);
+    assert.equal(slots.length,count);assert.equal(slots[0].number,1156);
+    assert.equal(slots[24].number,1180);assert.equal(slots[24].index,24);
+    assert.equal(slots.at(-1).number,1155+count);
+    assert.deepEqual(slots[10].servers,[]);assert.equal(slots[11].number,1167);
+    assert.equal(slots[24].servers[0],'https://player.test/episode-1180');
+  }
+});
+test('Egghead custom finish numbering preserves all seven inserted specials and the final episode',()=>{
+  const slots=Pages.episodeSlots('eps1='+JSON.stringify(Array(74).fill('https://player.test/e')),fixture('one-piece-egghead.html'),base);
+  assert.equal(slots.length,74);assert.equal(slots[0].number,1089);
+  assert.equal(slots[4].name,'EggHead SP 1');assert.equal(slots[4].number,null);
+  assert.equal(slots.filter(s=>s.number===null).length,7);
+  assert.equal(slots[50].number,1133);assert.equal(slots[51].name,'EggHead SP 7');
+  assert.equal(slots[52].number,1134);assert.equal(slots[73].number,1155);
+});
 test('closed Sibnet, empty/invalid sources and Vidmoly migration match the source',() => {
   const slots=Pages.episodeSlots(`eps1=['https://video.sibnet.ru/shell.php?videoid=1',,'https://ansembed.net/embed-third.html'];eps2=[null,'https://smoothpre.com/embed/second',undefined];`,'<script>finirListe(1)</script>',base);
   assert.equal(slots.length,3);assert.deepEqual(slots[0].servers,[]);assert.equal(slots[1].index,1);assert.equal(slots[2].number,3);
