@@ -30,7 +30,7 @@ optional companion addon below.
 
 ### Android TV
 
-Refresh the plugin repository on the TV itself and enable **Anime-Sama 1.0.5**.
+Refresh the plugin repository on the TV itself and enable **Anime-Sama 1.0.6**.
 Plugin versions/settings on the phone and TV can differ. Versions 1.0.4 and later support
 NuvioTV **1.0.0**, which provides synchronous HTTP but no JavaScript timers; earlier
 plugin versions returned no streams in that runtime. Newer binary-capable TV
@@ -193,6 +193,35 @@ a source/catalog count difference does not discard episodes that actually exist.
 Missing versions remain unavailable, and ambiguous groups still fail safely.
 Complex season splits can use an explicit mapping below.
 
+### Catalogs that combine seasons (1.0.6)
+
+The native plugin now translates a catalog's single continuous season into the
+regular seasons published by Anime-Sama. Jujutsu Kaisen currently maps as follows:
+
+| Nuvio Catalog | Anime-Sama |
+| --- | --- |
+| S1 E1–24 | Saison 1, E1–24 |
+| S1 E25–47 | Saison 2, E1–23 |
+| S1 E48–59 | Saison 3, E1–12 |
+
+This uses the live source's episode lists; these counts are not hardcoded in the
+plugin. Films, OAVs, Kai variants and named recap specials do not shift regular
+episode numbers. Canonical VOSTFR slots establish preceding season lengths even
+when VF is selected, so a delayed dub or dead player cannot shorten a season.
+Only the needed prefix and target season are read. Later seasons and films are
+not loaded. Missing or ambiguous source layouts remain unavailable rather than
+guessing an offset. Ordinary catalog seasons and declared saga ranges retain their
+own mapping; One Piece's ongoing saga behavior is preserved.
+
+Source-title lookup first tries the normalized title's direct page and accepts
+it only after checking that page's title/aliases and year. Matching titles save a
+search-page request; translated or exceptional paths retain the normal search
+fallback. Cold lookup benchmarks for Jujutsu Kaisen dropped from a median **814 ms
+to 266 ms**, and One Piece from **773 ms to 393 ms** (three samples each; title
+lookup only). This speeds the plugin's source lookup. Nuvio's app-wide catalog
+search is handled by its catalog addon. Each native selection gets a fresh runtime,
+so the plugin does not claim a persistent device cache or cache signed links.
+
 ### One Piece sagas and ongoing episodes (1.0.5)
 
 Nuvio's catalog seasons differ from Anime-Sama's sagas. For example, **S23 E1180**
@@ -210,7 +239,7 @@ range does not invent future episodes, and a missing VF slot never selects an
 earlier VF episode. Overlapping saga ranges or conflicting labels fail safely.
 
 After upgrading, open **Settings → Plugins**, refresh this repository and confirm
-**Anime-Sama 1.0.5** is enabled, then reopen the episode. Repository tabs on the
+**Anime-Sama 1.0.6** is enabled, then reopen the episode. Repository tabs on the
 stream screen only appear when that repository returns streams. If links remain
 missing, enable **Diagnostic** in Anime-Sama's plugin settings to log the catalog ID,
 matching stages and failure codes without signed links or credentials.
@@ -261,10 +290,10 @@ harness enables only diagnostics to record the selected relative path and positi
 
 ```sh
 npm run check                 # build + lint + deterministic tests
-npm run test:live -- --output docs/LIVE-VERIFICATION-1.0.5.json
+npm run test:live -- --output docs/LIVE-VERIFICATION-1.0.6.json
 npm run test:native:live
-npm run test:native:jvm -- --suite one-piece --output docs/ONE-PIECE-MOBILE-VERIFICATION-1.0.5.json
-npm run test:native:jvm -- --runtime tv --suite one-piece --output docs/ONE-PIECE-TV-VERIFICATION-1.0.5.json
+npm run test:native:jvm -- --suite jujutsu --output docs/JUJUTSU-MOBILE-VERIFICATION-1.0.6.json
+npm run test:native:jvm -- --runtime tv --suite jujutsu --output docs/JUJUTSU-TV-VERIFICATION-1.0.6.json
 npm audit --omit=dev
 ```
 
@@ -275,7 +304,9 @@ native runtime. No personal server is needed to install or use the plugin.
 The `one-piece` suite checks TMDB/IMDb/Kitsu selections, global and season-local
 episode numbers, and both sides of the Egghead/Elbaf boundary. It asserts the
 selected source group and player position as well as retrieving actual media.
-Omit `--suite one-piece` for the original One Piece/Jujutsu S1E1 smoke suite.
+The `jujutsu` suite checks both season boundaries, episode 25 via TMDB and IMDb,
+the latest source episode, and One Piece E1180. `--case N` selects one zero-based
+case for targeted development checks. Omit `--suite` for the original S1E1 smoke suite.
 
 The live commands perform real upstream HTTP requests and bounded media samples.
 It reports counts/timings/metadata without signed URLs or private state. Reports
@@ -286,12 +317,15 @@ polyfills, including its constrained Cheerio bridge.
 - [Architecture, contracts and maintenance](docs/ARCHITECTURE.md)
 - [CloudStream reuse and pinned references](docs/REFERENCES.md)
 - [Performance, examples and known limitations](docs/PERFORMANCE.md)
-- [Current live HTTP results](docs/LIVE-VERIFICATION-1.0.5.json)
-- [One Piece phone verification](docs/ONE-PIECE-MOBILE-VERIFICATION-1.0.5.json)
-- [One Piece Android TV verification](docs/ONE-PIECE-TV-VERIFICATION-1.0.5.json)
+- [Current live HTTP results](docs/LIVE-VERIFICATION-1.0.6.json)
+- [Jujutsu season mapping, phone](docs/JUJUTSU-MOBILE-VERIFICATION-1.0.6.json)
+- [Jujutsu season mapping, Android TV](docs/JUJUTSU-TV-VERIFICATION-1.0.6.json)
+- [Source lookup benchmark](docs/LOOKUP-BENCHMARK-1.0.6.json)
+- [Earlier One Piece phone verification](docs/ONE-PIECE-MOBILE-VERIFICATION-1.0.5.json)
+- [Earlier One Piece Android TV verification](docs/ONE-PIECE-TV-VERIFICATION-1.0.5.json)
 - [Earlier native JVM verification](docs/NATIVE-JVM-VERIFICATION-1.0.2.json)
 - [Reproduced 1.0.1 startup failure](docs/NATIVE-JVM-REGRESSION-1.0.1.json)
-- [Current TV smoke tests, including VF/VOSTFR](docs/NATIVE-TV-VERIFICATION-1.0.5.json)
+- [Earlier TV smoke tests, including VF/VOSTFR](docs/NATIVE-TV-VERIFICATION-1.0.5.json)
 - [Earlier Android TV native verification](docs/NATIVE-TV-VERIFICATION-1.0.4.json)
 - [Phone native regression check](docs/NATIVE-MOBILE-VERIFICATION-1.0.4.json)
 

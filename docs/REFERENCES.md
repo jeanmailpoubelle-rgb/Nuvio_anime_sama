@@ -204,3 +204,26 @@ zero-based position, not just the presence of any playable video. TV stops after
 a successful host per requested edition, avoiding a measured 12-second wait on
 a dead secondary player after ANSEmbed had already succeeded. Phone extraction
 remains concurrent, and missing VF editions remain unavailable.
+
+## Flattened Jujutsu Kaisen catalog follow-up (1.0.6)
+
+The live Nuvio Catalog response for `tmdb:95479` / `tt12343534` lists all 59 regular
+episodes in season 1. Anime-Sama lists seasons of 24, 23 and 12 episodes, with
+Jujutsu Kaisen 0 between its first two seasons. The screenshot's Hidden Inventory
+selection is catalog S1E25 and source `saison2/vostfr/` or `saison2/vf/`, slot 0.
+
+The CloudStream provider, `OrderedLanguageEpisodes.kt`, `AnimeSamaPages.kt` and
+cache/season-order behavior were rechecked. They provide authoritative labels,
+slots and source group order; translating an external catalog's combined season
+is Nuvio-specific. `src/episode-mapping.js` now owns that translation and preserves
+the earlier saga-range behavior. It counts regular canonical source episodes,
+retains unavailable positions and rejects ambiguous layouts.
+
+Both pinned Nuvio runtimes create a new JS context per invocation and expose no
+persistent plugin storage. Source identification therefore gets a validated direct
+slug fast path instead of claiming a cross-episode cache. Source title/alias and
+year checks remain required, and ordinary search is retained for exceptional slugs.
+The lookup benchmark alternates the committed 1.0.5 `sourceTitle` implementation
+and 1.0.6, with a fresh provider and identical metadata on each run. It measures
+public HTTP source identity lookup only; the native reports separately measure
+complete selection, mapping and extraction through native evaluation completion.

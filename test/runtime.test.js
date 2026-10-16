@@ -133,3 +133,25 @@ test('phone and timerless TV resolve S23 E1180 through Saga 12 using the correct
     assert.ok(result.logs.some(l=>l.includes('"index":24')));
   }
 });
+test('phone and TV map flattened Jujutsu S1E25 to source season 2 and skip search, films and later seasons',async()=>{
+  const base='https://anime-sama.to',root='/catalogue/jujutsu-kaisen/';
+  const routes={
+    'https://catalog.nuvio.tv/meta/series/tmdb:95479.json':JSON.stringify({meta:{name:'JUJUTSU KAISEN',genres:['Animation'],released:'2020-10-03',videos:Array.from({length:59},(_,i)=>({season:1,episode:i+1}))}}),
+    [base+root]:'<h1>Jujutsu Kaisen</h1><script>panneauAnime("Saison 1","saison1/vostfr/");panneauAnime("Film","film/vostfr/");panneauAnime("Saison 2","saison2/vostfr/");panneauAnime("Saison 3","saison3/vostfr/");</script>',
+    'https://ansembed.net/episode-25':"<video src='https://cdn.test/episode-25.mp4'></video>",
+    'https://cdn.test/episode-25.mp4':''
+  };
+  for(const [season,count] of [[1,24],[2,23]]) {
+    const path=root+`saison${season}/vostfr/`;
+    routes[base+path]='<script src="episodes.js"></script><script>finirListe(1);</script>';
+    routes[base+path+'episodes.js']='eps1='+JSON.stringify(Array.from({length:count},(_,i)=>`https://ansembed.net/episode-${(season===1?0:24)+i+1}`));
+  }
+  for(const tvRuntime of [false,true]) {
+    const result=await runNative({diagnostics:true},['95479','tv',1,25],routes,{tvRuntime});
+    assert.equal(result.streams.length,1,result.logs.join('\n'));
+    assert.equal(result.streams[0].headers.Referer,'https://ansembed.net/episode-25');
+    assert.ok(result.logs.some(l=>l.includes('saison2/vostfr/') && l.includes('"index":0')));
+    assert.equal(result.calls.filter(c=>c.url===base+root+'saison2/vostfr/episodes.js').length,1);
+    assert.ok(!result.calls.some(c=>/search=|\/film\/|\/saison3\/|\/saison1\/vf\//.test(c.url)));
+  }
+});

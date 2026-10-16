@@ -1,0 +1,1016 @@
+{
+  "checkedAt": "2026-10-16T19:11:06.641137+00:00",
+  "runtime": "dokar3 quickjs-kt 1.0.15 JVM; exact pinned Nuvio 0.5.9 startup, URL/Ktor and DOM/Ksoup bridges; Node HTTP; not Android playback",
+  "nuvioCommit": "db0c50b503039863909c86405907462bf1752193",
+  "pluginVersion": "1.0.6",
+  "settings": {
+    "diagnostics": true
+  },
+  "injectedTmdbKey": false,
+  "manualMappings": false,
+  "bundleSha256": "58e876f51c52acf93181f26151338dc75e029d03e86fc9e5b39e04153808a2b5",
+  "cases": [
+    {
+      "title": "Jujutsu first episode",
+      "id": "95479",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 1,
+      "requests": 28,
+      "resultReadyMs": 8124,
+      "resolveMs": 8900,
+      "runtimeDrainMs": 776,
+      "selection": {
+        "count": 59,
+        "refs": [
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison1/vostfr/",
+            "index": 0,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison1/vf/",
+            "index": 0,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 3065,
+        "discoveryMs": 10,
+        "requests": 22,
+        "requestCategories": {
+          "embed": 8,
+          "validation": 14
+        },
+        "networkMs": 12076,
+        "players": 8,
+        "streams": 3,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1553,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1671,
+            "streams": 1
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 1978,
+            "streams": 1,
+            "reason": "HTTP 403"
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 3046,
+            "streams": 0,
+            "reason": "HLS variants unavailable."
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 1502,
+            "streams": 0,
+            "reason": "HLS variants unavailable."
+          },
+          {
+            "host": "jeremyparticipantanything.com",
+            "source": "Voe",
+            "ms": 1380,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 1072,
+            "streams": 0,
+            "reason": "ABORTED"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VF • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "Smoothpre",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "Jujutsu end of source season 1",
+      "id": "95479",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 24,
+      "requests": 20,
+      "resultReadyMs": 5458,
+      "resolveMs": 5747,
+      "runtimeDrainMs": 289,
+      "selection": {
+        "count": 59,
+        "refs": [
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison1/vostfr/",
+            "index": 23,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison1/vf/",
+            "index": 23,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 2524,
+        "discoveryMs": 3,
+        "requests": 14,
+        "requestCategories": {
+          "embed": 7,
+          "validation": 7
+        },
+        "networkMs": 9883,
+        "players": 8,
+        "streams": 2,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1019,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1501,
+            "streams": 1
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 2518,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 2518,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 1502,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "jeremyparticipantanything.com",
+            "source": "jeremyparticipantanything.com",
+            "ms": 1019,
+            "streams": 0,
+            "reason": "ABORTED"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VF • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "Jujutsu Hidden Inventory",
+      "id": "95479",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 25,
+      "requests": 29,
+      "resultReadyMs": 4926,
+      "resolveMs": 5607,
+      "runtimeDrainMs": 681,
+      "selection": {
+        "count": 59,
+        "refs": [
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison2/vostfr/",
+            "index": 0,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison2/vf/",
+            "index": 0,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 2466,
+        "discoveryMs": 3,
+        "requests": 21,
+        "requestCategories": {
+          "embed": 9,
+          "validation": 12
+        },
+        "networkMs": 9635,
+        "players": 8,
+        "streams": 4,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1051,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 961,
+            "streams": 1
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 2387,
+            "streams": 1
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 1753,
+            "streams": 1
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 1502,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "jeremyparticipantanything.com",
+            "source": "Voe",
+            "ms": 1412,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 708,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "jeremyparticipantanything.com",
+            "source": "jeremyparticipantanything.com",
+            "ms": 74,
+            "streams": 0,
+            "reason": "ABORTED"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VF • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VF • 720p",
+          "source": "Smoothpre",
+          "quality": "720p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "Smoothpre",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "Jujutsu end of source season 2",
+      "id": "95479",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 47,
+      "requests": 29,
+      "resultReadyMs": 4712,
+      "resolveMs": 13794,
+      "runtimeDrainMs": 9082,
+      "selection": {
+        "count": 59,
+        "refs": [
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison2/vostfr/",
+            "index": 22,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison2/vf/",
+            "index": 22,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 2359,
+        "discoveryMs": 3,
+        "requests": 21,
+        "requestCategories": {
+          "embed": 8,
+          "validation": 13
+        },
+        "networkMs": 9025,
+        "players": 8,
+        "streams": 3,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 855,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 905,
+            "streams": 1
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 2353,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 2353,
+            "streams": 0,
+            "reason": "HLS variants unavailable."
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 960,
+            "streams": 1
+          },
+          {
+            "host": "jeremyparticipantanything.com",
+            "source": "Voe",
+            "ms": 1448,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 541,
+            "streams": 0,
+            "reason": "ABORTED"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VF • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "uqload.vc",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "Jujutsu start of source season 3",
+      "id": "95479",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 48,
+      "requests": 30,
+      "resultReadyMs": 5664,
+      "resolveMs": 16219,
+      "runtimeDrainMs": 10555,
+      "selection": {
+        "count": 59,
+        "refs": [
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison3/vostfr/",
+            "index": 0,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison3/vf/",
+            "index": 0,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 2401,
+        "discoveryMs": 4,
+        "requests": 20,
+        "requestCategories": {
+          "embed": 10,
+          "validation": 10
+        },
+        "networkMs": 9715,
+        "players": 10,
+        "streams": 5,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 894,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1081,
+            "streams": 1
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 939,
+            "streams": 1
+          },
+          {
+            "host": "jeremyparticipantanything.com",
+            "source": "Voe",
+            "ms": 2118,
+            "streams": 2
+          },
+          {
+            "host": "dingtezuni.com",
+            "source": "dingtezuni.com",
+            "ms": 1502,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "lpayer.embed4me.com",
+            "source": "lpayer.embed4me.com",
+            "ms": 1455,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 1315,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "teresapoliticallearn.com",
+            "source": "teresapoliticallearn.com",
+            "ms": 274,
+            "streams": 0,
+            "reason": "ABORTED"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "uqload.vc",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VF • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR",
+          "source": "Voe",
+          "version": "VOSTFR",
+          "type": "video",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "Voe",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "Jujutsu last published episode",
+      "id": "95479",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 59,
+      "requests": 30,
+      "resultReadyMs": 6528,
+      "resolveMs": 17115,
+      "runtimeDrainMs": 10587,
+      "selection": {
+        "count": 59,
+        "refs": [
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison3/vostfr/",
+            "index": 11,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison3/vf/",
+            "index": 11,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 2299,
+        "discoveryMs": 2,
+        "requests": 20,
+        "requestCategories": {
+          "embed": 9,
+          "validation": 11
+        },
+        "networkMs": 9768,
+        "players": 10,
+        "streams": 5,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 893,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 874,
+            "streams": 1
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 791,
+            "streams": 1
+          },
+          {
+            "host": "jeremyparticipantanything.com",
+            "source": "Voe",
+            "ms": 2104,
+            "streams": 2
+          },
+          {
+            "host": "dingtezuni.com",
+            "source": "dingtezuni.com",
+            "ms": 1501,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "lpayer.embed4me.com",
+            "source": "lpayer.embed4me.com",
+            "ms": 1420,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 1403,
+            "streams": 0,
+            "reason": "HLS variants unavailable."
+          },
+          {
+            "host": "teresapoliticallearn.com",
+            "source": "teresapoliticallearn.com",
+            "ms": 187,
+            "streams": 0,
+            "reason": "ABORTED"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "uqload.vc",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VF • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR",
+          "source": "Voe",
+          "version": "VOSTFR",
+          "type": "video",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "Voe",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "Jujutsu IMDb Hidden Inventory",
+      "id": "tt12343534",
+      "mediaType": "tv",
+      "season": 1,
+      "episode": 25,
+      "requests": 28,
+      "resultReadyMs": 6683,
+      "resolveMs": 7469,
+      "runtimeDrainMs": 786,
+      "selection": {
+        "count": 59,
+        "refs": [
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison2/vostfr/",
+            "index": 0,
+            "language": "vostfr"
+          },
+          {
+            "path": "/catalogue/jujutsu-kaisen/saison2/vf/",
+            "index": 0,
+            "language": "vf"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 2470,
+        "discoveryMs": 2,
+        "requests": 20,
+        "requestCategories": {
+          "embed": 7,
+          "validation": 13
+        },
+        "networkMs": 9554,
+        "players": 8,
+        "streams": 2,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1360,
+            "streams": 1
+          },
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 927,
+            "streams": 1
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 2466,
+            "streams": 0,
+            "reason": "HLS variants unavailable."
+          },
+          {
+            "host": "Smoothpre.com",
+            "source": "Smoothpre",
+            "ms": 2466,
+            "streams": 0,
+            "reason": "HLS variants unavailable."
+          },
+          {
+            "host": "uqload.vc",
+            "source": "uqload.vc",
+            "ms": 1540,
+            "streams": 0,
+            "reason": "HLS variants unavailable."
+          },
+          {
+            "host": "jeremyparticipantanything.com",
+            "source": "Voe",
+            "ms": 1108,
+            "streams": 0,
+            "reason": "ABORTED"
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VF • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VF",
+          "type": "hls",
+          "audioLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    },
+    {
+      "title": "One Piece ongoing saga regression",
+      "id": "37854",
+      "mediaType": "tv",
+      "season": 23,
+      "episode": 1180,
+      "requests": 19,
+      "resultReadyMs": 6514,
+      "resolveMs": 15660,
+      "runtimeDrainMs": 9146,
+      "selection": {
+        "count": 25,
+        "refs": [
+          {
+            "path": "/catalogue/one-piece/saison12/vostfr/",
+            "index": 24,
+            "language": "vostfr"
+          }
+        ]
+      },
+      "resolution": {
+        "elapsedMs": 2867,
+        "discoveryMs": 2,
+        "requests": 12,
+        "requestCategories": {
+          "embed": 5,
+          "validation": 7
+        },
+        "networkMs": 9572,
+        "players": 4,
+        "streams": 4,
+        "hosts": [
+          {
+            "host": "ansembed.net",
+            "source": "ANSEmbed",
+            "ms": 1364,
+            "streams": 1
+          },
+          {
+            "host": "lpayer.embed4me.com",
+            "source": "lpayer.embed4me.com",
+            "ms": 2864,
+            "streams": 0,
+            "reason": "ABORTED"
+          },
+          {
+            "host": "jeremyparticipantanything.com",
+            "source": "Voe",
+            "ms": 2023,
+            "streams": 2
+          },
+          {
+            "host": "minochinos.com",
+            "source": "callistanise.com",
+            "ms": 2829,
+            "streams": 1
+          }
+        ]
+      },
+      "streams": [
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "ANSEmbed",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR",
+          "source": "Voe",
+          "version": "VOSTFR",
+          "type": "video",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 720p",
+          "source": "Voe",
+          "quality": "720p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        },
+        {
+          "title": "Anime-Sama • VOSTFR • 1080p",
+          "source": "callistanise.com",
+          "quality": "1080p",
+          "version": "VOSTFR",
+          "type": "hls",
+          "subtitleLanguages": [
+            "fr"
+          ]
+        }
+      ],
+      "mediaSample": {
+        "status": 206,
+        "bytes": 4096
+      },
+      "correctSourceSelection": true
+    }
+  ]
+}

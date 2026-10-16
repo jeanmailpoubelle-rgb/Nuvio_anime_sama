@@ -4,6 +4,75 @@ Measurements come from the cloud machine through its configured HTTPS proxy.
 Each report records its date and measurement boundaries. Network location,
 upstream load and the collection window affect each run; timings are samples.
 
+## Combined catalog seasons and faster lookup (1.0.6)
+
+Checked 2026-10-16. Nuvio Catalog combines Jujutsu Kaisen into one season of 59
+episodes, while the source has 24/23/12 regular episodes and an intervening film.
+The old direct-season lookup returned `SOURCE_EPISODE_UNAVAILABLE` for S1E25.
+The mapper now walks the necessary canonical source prefix, keeping films, OAVs,
+Kai and named specials outside regular TV numbering. Selected-language gaps,
+dead slots and catalog row gaps cannot compress the numbering. Declared source
+saga ranges still take precedence; ordinary multi-season catalogs stay direct.
+
+All 16 cases below passed with the exact pinned native phone/TV bridges and the
+published bundle hash recorded in the reports. Each asserts the source season
+and actual player-array slot, then retrieves an HTTP 206, 4096-byte media sample.
+All Jujutsu cases returned **both VF and VOSTFR**, including ANSEmbed 1080p streams.
+One Piece E1180 still returned its source Saga 12 VOSTFR stream.
+
+| Selection | Verified source position | TV streams | TV complete (ms) | Phone streams | Phone complete (ms) |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Jujutsu first episode E1 | saison1, slot 0 | 2 | 8923 | 3 | 8900 |
+| Jujutsu end of source season 1 E24 | saison1, slot 23 | 2 | 5871 | 2 | 5747 |
+| Jujutsu Hidden Inventory E25 | saison2, slot 0 | 2 | 5036 | 4 | 5607 |
+| Jujutsu end of source season 2 E47 | saison2, slot 22 | 2 | 4213 | 3 | 13794 |
+| Jujutsu start of source season 3 E48 | saison3, slot 0 | 2 | 5324 | 5 | 16219 |
+| Jujutsu last published episode E59 | saison3, slot 11 | 2 | 4966 | 5 | 17115 |
+| Jujutsu IMDb Hidden Inventory E25 | saison2, slot 0 | 2 | 3874 | 2 | 7469 |
+| One Piece ongoing saga regression E1180 | saison12, slot 24 | 1 | 9015 | 4 | 15660 |
+
+These are Linux/JVM runtime tests using Node HTTP through the cloud proxy, not
+physical-device playback. Times include native startup, matching and extraction;
+separate media samples are excluded. Slow native HTTP callbacks can still delay
+phone completion after results are ready. The reports retain both timestamps.
+
+Source identity now uses a validated direct-title page before ordinary search.
+The benchmark alternated 1.0.5 and 1.0.6 with identical input metadata and a fresh
+provider on every sample (three per title/implementation):
+
+| Title | Previous GETs | New GETs | Previous median (ms) | New median (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| JUJUTSU KAISEN | 2 | 1 | 814 | 266 |
+| One Piece | 2 | 1 | 773 | 393 |
+
+This removes one sequential search-page request for matching slugs. It measures
+only source-title lookup, not a full stream resolution or Nuvio's catalog-wide
+search. Nonmatching slugs use search after the direct probe and can be slower.
+Title/alias/year validation remains required; this is not an unchecked slug guess.
+
+For Jujutsu E25 on TV: **14 requests** = 1 catalog + 1 validated source title +
+2 preceding-season canonical requests + 4 target-season edition requests +
+6 player/playlist validation requests. No film or later season is fetched.
+Canonical target discovery and episode scripts are reused within the same call;
+only the preceding seasons needed to establish the offset are added. When source
+ranges already identify the episode, that prefix discovery is unnecessary.
+One Piece E1180 saves the search GET too (10 TV requests in this run).
+
+Nuvio creates fresh plugin contexts for each selection and has no persistent plugin
+storage API in these inspected releases. Prefix metadata is cached within an
+invocation; the companion server can reuse its longer-lived provider cache.
+Signed playback URLs are never cached to speed up a later selection.
+
+Reports: [TV](JUJUTSU-TV-VERIFICATION-1.0.6.json),
+[phone](JUJUTSU-MOBILE-VERIFICATION-1.0.6.json),
+[lookup benchmark](LOOKUP-BENCHMARK-1.0.6.json),
+[general browsing/extraction/concurrency](LIVE-VERIFICATION-1.0.6.json).
+The deterministic suite passes **78 tests**, including boundary translation,
+ordinary seasons, declared ranges, missing canonical pages, holes, late VF,
+inserted specials, unpublished episodes and identity-validation fallbacks.
+A source whose canonical prefix is missing, reordered or inconsistently numbered
+fails safely; an explicit source mapping remains available for such layouts.
+
 ## One Piece ongoing sagas and TV latency (1.0.5)
 
 Checked 2026-10-16 against the user's Nuvio Catalog and live Anime-Sama pages.

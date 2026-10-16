@@ -1481,8 +1481,8 @@ var require_catalog_context = __commonJS({
         else if (ch === "}" || ch === "]") depth--;
       }
       if (videos < 0) return JSON.parse(raw).meta;
-      const selected = [];
-      let offset = 0, objectStart = -1;
+      const selected = [], groups = /* @__PURE__ */ new Set();
+      let offset = 0, objectStart = -1, complete = false;
       depth = 0;
       quote = false;
       escaped = false;
@@ -1505,15 +1505,19 @@ var require_catalog_context = __commonJS({
           depth--;
           if (depth === 0 && objectStart >= 0) {
             const v = JSON.parse(raw.slice(objectStart, i + 1)), number = Number(v.episode), group = Number(v.season);
+            if (Number.isInteger(group) && group > 0) groups.add(group);
             if (group > season) break;
             if (Number.isInteger(number) && number > 0) {
               if (group > 0 && group < season) offset++;
               else if (group === season) selected.push({ episode_number: number, name: v.title });
             }
           }
-        } else if (ch === "]" && depth === 0) break;
+        } else if (ch === "]" && depth === 0) {
+          complete = true;
+          break;
+        }
       }
-      return { ...header, catalogEpisodes: selected, absoluteOffset: offset };
+      return { ...header, catalogEpisodes: selected, absoluteOffset: offset, singleSeason: complete && groups.size === 1 && groups.has(1) };
     }
     function titleContext(provider, id, type, key = "", season = 1) {
       return __async(this, null, function* () {
@@ -1549,7 +1553,8 @@ var require_catalog_context = __commonJS({
             first_air_date: meta.released || meta.releaseInfo,
             release_date: meta.released || meta.releaseInfo,
             catalogEpisodes: meta.catalogEpisodes,
-            absoluteOffset: meta.absoluteOffset
+            absoluteOffset: meta.absoluteOffset,
+            singleSeason: meta.singleSeason
           };
         } catch (_error) {
         }
@@ -1565,7 +1570,8 @@ var require_catalog_context = __commonJS({
             first_air_date: meta.year || meta.releaseInfo,
             release_date: meta.year || meta.releaseInfo,
             catalogEpisodes: meta.catalogEpisodes,
-            absoluteOffset: meta.absoluteOffset
+            absoluteOffset: meta.absoluteOffset,
+            singleSeason: meta.singleSeason
           };
         }
         if (key) {
@@ -1582,7 +1588,7 @@ var require_catalog_context = __commonJS({
       return __async(this, null, function* () {
         var _a;
         if (id.startsWith("kitsu:")) return { absolute: true };
-        if ((_a = metadata == null ? void 0 : metadata.catalogEpisodes) == null ? void 0 : _a.length) return { episodes: metadata.catalogEpisodes, absoluteOffset: metadata.absoluteOffset };
+        if ((_a = metadata == null ? void 0 : metadata.catalogEpisodes) == null ? void 0 : _a.length) return { episodes: metadata.catalogEpisodes, absoluteOffset: metadata.absoluteOffset, singleSeason: metadata.singleSeason };
         if (id.startsWith("tt")) {
           const episodes = (metadata == null ? void 0 : metadata.catalogEpisodes) || [];
           if (!episodes.length) throw Object.assign(new Error("IMDb catalog season unavailable."), { code: "SEASON_UNAVAILABLE" });
@@ -1602,12 +1608,116 @@ var require_catalog_context = __commonJS({
   }
 });
 
+// src/episode-mapping.js
+var require_episode_mapping = __commonJS({
+  "src/episode-mapping.js"(exports2, module2) {
+    function failure2(code) {
+      return Object.assign(new Error(code), { code });
+    }
+    function declaredRange(group) {
+      const m = /\[?\s*[ÉE]pisodes?\s*(\d+)\s*(?:à|a|-)\s*(\d+|\.{3}|…)/i.exec(group.name);
+      if (!m) return null;
+      const first = Number(m[1]), last = /^\d+$/.test(m[2]) ? Number(m[2]) : Infinity;
+      return Number.isSafeInteger(first) && first > 0 && (Number.isSafeInteger(last) || last === Infinity) && last >= first ? { first, last } : null;
+    }
+    function chooseCatalogEpisode2(context, requested) {
+      if (context.absolute) return { number: requested, position: requested - 1 };
+      const episodes = context.episodes || [];
+      const exact = episodes.findIndex((e) => e.episode_number === requested);
+      const position = exact >= 0 ? exact : requested - 1;
+      if (!Number.isInteger(position) || !episodes[position]) throw failure2("CATALOG_EPISODE_NOT_FOUND");
+      return {
+        number: episodes[position].episode_number,
+        position,
+        count: episodes.length,
+        ...context.absoluteOffset != null ? { absoluteNumber: context.absoluteOffset + position + 1 } : {}
+      };
+    }
+    function regularSeason(group) {
+      return /^saison([1-9]\d*)(?:p([1-9]\d*))?$/.exec(group.path.split("/").filter(Boolean).pop());
+    }
+    function ref(version, slot) {
+      return (slot == null ? void 0 : slot.servers.length) ? [{ path: version.path, index: slot.index, language: version.language, script: version.script }] : [];
+    }
+    function flattenedReferences(provider, groups, ordinal) {
+      return __async(this, null, function* () {
+        var _a;
+        let offset = 0, previousSeason = 0, previousPart = 0;
+        for (const group of groups) {
+          const match = regularSeason(group), season = Number(match[1]), part = Number(match[2] || 1);
+          if (!(season === previousSeason + 1 && part === 1) && !(season === previousSeason && part === previousPart + 1)) throw failure2("SOURCE_LAYOUT_AMBIGUOUS");
+          previousSeason = season;
+          previousPart = part;
+          const canonical = yield provider.version(group, "vostfr");
+          if (!canonical) throw failure2("SOURCE_LAYOUT_UNAVAILABLE");
+          const rows = canonical.episodes.filter((e) => Number.isSafeInteger(e.number) && e.number > 0);
+          const first = (_a = rows[0]) == null ? void 0 : _a.number;
+          if (!rows.length || first !== 1 && first !== offset + 1 || rows.some((e, i) => e.number !== first + i)) throw failure2("SOURCE_LAYOUT_AMBIGUOUS");
+          if (ordinal > offset + rows.length) {
+            offset += rows.length;
+            continue;
+          }
+          const local = ordinal - offset - 1;
+          if (local < 0) break;
+          const versions = yield provider.versions(group, provider.config.version);
+          const refs = versions.flatMap((v) => {
+            var _a2;
+            const numbered = v.episodes.filter((e) => Number.isSafeInteger(e.number) && e.number > 0);
+            const start = (_a2 = numbered[0]) == null ? void 0 : _a2.number;
+            if (start !== 1 && start !== offset + 1) return [];
+            const matches = numbered.filter((e) => e.number === start + local);
+            return matches.length === 1 ? ref(v, matches[0]) : [];
+          });
+          if (!refs.length) throw failure2("SOURCE_EPISODE_UNAVAILABLE");
+          return refs;
+        }
+        throw failure2("SOURCE_EPISODE_UNAVAILABLE");
+      });
+    }
+    function episodeReferences2(provider, detail, context, season, episode) {
+      return __async(this, null, function* () {
+        const selected = chooseCatalogEpisode2(context, episode);
+        const regular = detail.groups.filter(regularSeason);
+        if (season === 1 && (context.singleSeason || context.absolute) && regular.length > 1 && !regular.some(declaredRange)) {
+          return flattenedReferences(provider, regular, selected.number);
+        }
+        const direct = regular.find((g) => g.path === detail.path + `saison${season}/`);
+        const rangeNumber = context.singleSeason ? selected.number : selected.absoluteNumber || selected.number;
+        const ranges = regular.filter((g) => {
+          const r = declaredRange(g);
+          return r && rangeNumber >= r.first && rangeNumber <= r.last;
+        });
+        const useRange = context.absolute || context.singleSeason || rangeNumber > selected.position + 1;
+        if (useRange && ranges.length > 1) throw failure2("SOURCE_SEASON_AMBIGUOUS");
+        let group = ranges.length === 1 && useRange ? ranges[0] : direct;
+        if (!group && regular.length === 1 && useRange) group = regular[0];
+        if (!group) throw failure2("SOURCE_SEASON_NOT_FOUND");
+        const range = declaredRange(group);
+        if (range && (rangeNumber < range.first || rangeNumber > range.last)) throw failure2("SOURCE_EPISODE_UNAVAILABLE");
+        const versions = yield provider.versions(group, provider.config.version);
+        if (!versions.length) throw failure2("SOURCE_VERSION_UNAVAILABLE");
+        const refs = versions.flatMap((v) => {
+          var _a;
+          const first = (_a = v.episodes[0]) == null ? void 0 : _a.number;
+          const target = range || regular.length === 1 && !direct ? rangeNumber : selected.number;
+          let slot = v.episodes.find((e) => e.number === target);
+          if (!slot && !range && first === 1 && group === direct) slot = v.episodes[selected.position];
+          return ref(v, slot);
+        });
+        if (!refs.length) throw failure2("SOURCE_EPISODE_UNAVAILABLE");
+        return refs;
+      });
+    }
+    module2.exports = { chooseCatalogEpisode: chooseCatalogEpisode2, episodeReferences: episodeReferences2 };
+  }
+});
+
 // package.json
 var require_package = __commonJS({
   "package.json"(exports2, module2) {
     module2.exports = {
       name: "nuvio-anime-sama",
-      version: "1.0.5",
+      version: "1.0.6",
       private: true,
       description: "Anime-Sama native Nuvio stream plugin and catalog addon",
       license: "GPL-3.0-or-later",
@@ -1642,6 +1752,7 @@ var { AnimeSamaProvider } = require_provider();
 var { defaults } = require_config2();
 var Id = require_ids();
 var Catalog = require_catalog_context();
+var { chooseCatalogEpisode, episodeReferences } = require_episode_mapping();
 var { nativeStream } = require_streams();
 var { version: pluginVersion } = require_package();
 function clean(value) {
@@ -1684,6 +1795,15 @@ function compatibleYear(detail, metadata, type) {
 function sourceTitle(provider, metadata, type) {
   return __async(this, null, function* () {
     const titles = titleNames(metadata), names = new Set(titles.map(clean)), candidates = /* @__PURE__ */ new Map();
+    const slug = clean(titles[0]).replace(/ /g, "-");
+    if (slug && slug.length <= 160) {
+      const path = `/catalogue/${slug}/`;
+      try {
+        const detail = yield provider.details(path);
+        if (detail.path === path && exactTitle(names, detail) && compatibleYear(detail, metadata, type)) return detail;
+      } catch (_error) {
+      }
+    }
     for (const title of titles.slice(0, 3)) {
       const search = yield provider.search(title);
       for (const card of search.items) candidates.set(card.path, card);
@@ -1704,56 +1824,6 @@ function sourceTitle(provider, metadata, type) {
     }
     if (candidates.size) throw failure("NO_EXACT_SOURCE_ALIAS");
     throw failure("SOURCE_TITLE_NOT_FOUND");
-  });
-}
-function declaredRange(group) {
-  const m = /\[?\s*[ÉE]pisodes?\s*(\d+)\s*(?:à|a|-)\s*(\d+|\.{3}|…)/i.exec(group.name);
-  if (!m) return null;
-  const first = Number(m[1]), last = /^\d+$/.test(m[2]) ? Number(m[2]) : Infinity;
-  return first > 0 && last >= first ? { first, last } : null;
-}
-function chooseCatalogEpisode(context, requested) {
-  if (context.absolute) return { number: requested, position: requested - 1 };
-  const episodes = context.episodes || [];
-  const exact = episodes.findIndex((e) => e.episode_number === requested);
-  const position = exact >= 0 ? exact : requested - 1;
-  if (!Number.isInteger(position) || !episodes[position]) throw failure("CATALOG_EPISODE_NOT_FOUND");
-  return {
-    number: episodes[position].episode_number,
-    position,
-    count: episodes.length,
-    ...context.absoluteOffset != null ? { absoluteNumber: context.absoluteOffset + position + 1 } : {}
-  };
-}
-function episodeReferences(provider, detail, context, season, episode) {
-  return __async(this, null, function* () {
-    const selected = chooseCatalogEpisode(context, episode);
-    const regular = detail.groups.filter((g) => /^saison\d+(?:p\d+)?$/.test(g.path.split("/").filter(Boolean).pop()));
-    const direct = regular.find((g) => g.path === detail.path + `saison${season}/`);
-    const rangeNumber = selected.absoluteNumber || selected.number;
-    const ranges = regular.filter((g) => {
-      const r = declaredRange(g);
-      return r && rangeNumber >= r.first && rangeNumber <= r.last;
-    });
-    const useRange = context.absolute || rangeNumber > selected.position + 1;
-    if (useRange && ranges.length > 1) throw failure("SOURCE_SEASON_AMBIGUOUS");
-    let group = ranges.length === 1 && useRange ? ranges[0] : direct;
-    if (!group && regular.length === 1 && (context.absolute || rangeNumber > selected.position + 1)) group = regular[0];
-    if (!group) throw failure("SOURCE_SEASON_NOT_FOUND");
-    const range = declaredRange(group);
-    if (range && (rangeNumber < range.first || rangeNumber > range.last)) throw failure("SOURCE_EPISODE_UNAVAILABLE");
-    const versions = yield provider.versions(group, provider.config.version);
-    if (!versions.length) throw failure("SOURCE_VERSION_UNAVAILABLE");
-    const refs = versions.flatMap((v) => {
-      var _a;
-      const first = (_a = v.episodes[0]) == null ? void 0 : _a.number;
-      const target = range || regular.length === 1 && !direct ? rangeNumber : selected.number;
-      let slot = v.episodes.find((e) => e.number === target);
-      if (!slot && !range && first === 1 && group === direct) slot = v.episodes[selected.position];
-      return (slot == null ? void 0 : slot.servers.length) ? [{ path: v.path, index: slot.index, language: v.language, script: v.script }] : [];
-    });
-    if (!refs.length) throw failure("SOURCE_EPISODE_UNAVAILABLE");
-    return refs;
   });
 }
 function resolveSelection(provider, id, type, season, episode, settings, key) {

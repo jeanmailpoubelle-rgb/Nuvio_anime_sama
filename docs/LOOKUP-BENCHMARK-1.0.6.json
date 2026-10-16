@@ -1,0 +1,104 @@
+{
+  "checkedAt": "2026-10-16T19:08:59.954Z",
+  "measurement": "Cold source identity lookup only; public HTTP through cloud proxy; same metadata and fresh provider per run; excludes catalog/episodes/extraction/device playback",
+  "beforeVersion": "1.0.5",
+  "afterVersion": "1.0.6",
+  "cases": [
+    {
+      "name": "JUJUTSU KAISEN",
+      "sample": 1,
+      "implementation": "before",
+      "ms": 760,
+      "requests": 2,
+      "relativePath": "/catalogue/jujutsu-kaisen/"
+    },
+    {
+      "name": "JUJUTSU KAISEN",
+      "sample": 1,
+      "implementation": "after",
+      "ms": 435,
+      "requests": 1,
+      "relativePath": "/catalogue/jujutsu-kaisen/"
+    },
+    {
+      "name": "JUJUTSU KAISEN",
+      "sample": 2,
+      "implementation": "after",
+      "ms": 266,
+      "requests": 1,
+      "relativePath": "/catalogue/jujutsu-kaisen/"
+    },
+    {
+      "name": "JUJUTSU KAISEN",
+      "sample": 2,
+      "implementation": "before",
+      "ms": 814,
+      "requests": 2,
+      "relativePath": "/catalogue/jujutsu-kaisen/"
+    },
+    {
+      "name": "JUJUTSU KAISEN",
+      "sample": 3,
+      "implementation": "before",
+      "ms": 846,
+      "requests": 2,
+      "relativePath": "/catalogue/jujutsu-kaisen/"
+    },
+    {
+      "name": "JUJUTSU KAISEN",
+      "sample": 3,
+      "implementation": "after",
+      "ms": 219,
+      "requests": 1,
+      "relativePath": "/catalogue/jujutsu-kaisen/"
+    },
+    {
+      "name": "One Piece",
+      "sample": 1,
+      "implementation": "before",
+      "ms": 620,
+      "requests": 2,
+      "relativePath": "/catalogue/one-piece/"
+    },
+    {
+      "name": "One Piece",
+      "sample": 1,
+      "implementation": "after",
+      "ms": 431,
+      "requests": 1,
+      "relativePath": "/catalogue/one-piece/"
+    },
+    {
+      "name": "One Piece",
+      "sample": 2,
+      "implementation": "after",
+      "ms": 393,
+      "requests": 1,
+      "relativePath": "/catalogue/one-piece/"
+    },
+    {
+      "name": "One Piece",
+      "sample": 2,
+      "implementation": "before",
+      "ms": 773,
+      "requests": 2,
+      "relativePath": "/catalogue/one-piece/"
+    },
+    {
+      "name": "One Piece",
+      "sample": 3,
+      "implementation": "before",
+      "ms": 1085,
+      "requests": 2,
+      "relativePath": "/catalogue/one-piece/"
+    },
+    {
+      "name": "One Piece",
+      "sample": 3,
+      "implementation": "after",
+      "ms": 390,
+      "requests": 1,
+      "relativePath": "/catalogue/one-piece/"
+    }
+  ]
+}

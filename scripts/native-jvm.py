@@ -52,7 +52,8 @@ def main():
     parser.add_argument('--output', type=Path)
     parser.add_argument('--bundle', type=Path, default=ROOT / 'providers/anime-sama.js')
     parser.add_argument('--runtime', choices=['mobile', 'tv'], default='mobile')
-    parser.add_argument('--suite', choices=['smoke', 'one-piece'], default='smoke')
+    parser.add_argument('--suite', choices=['smoke', 'one-piece', 'jujutsu'], default='smoke')
+    parser.add_argument('--case', type=int, help='Run only this zero-based case from the selected suite')
     args = parser.parse_args()
     tv = args.runtime == 'tv'
     lock = json.loads((ROOT / ('test/native-jvm/dependencies-tv.json' if tv else 'test/native-jvm/dependencies.json')).read_text())
@@ -99,6 +100,17 @@ def main():
                   ('One Piece IMDb', 'tt0388629', 'tv', 1, 1, 1, 0),
                   ('One Piece Kitsu', 'kitsu:12', 'series', 1, 1, 1, 0),
                   ('Jujutsu Kaisen', '95479', 'tv', 1, 1, 1, 0)])
+        if args.suite == 'jujutsu':
+            cases = [('Jujutsu first episode', '95479', 'tv', 1, 1, 1, 0),
+                     ('Jujutsu end of source season 1', '95479', 'tv', 1, 24, 1, 23),
+                     ('Jujutsu Hidden Inventory', '95479', 'tv', 1, 25, 2, 0),
+                     ('Jujutsu end of source season 2', '95479', 'tv', 1, 47, 2, 22),
+                     ('Jujutsu start of source season 3', '95479', 'tv', 1, 48, 3, 0),
+                     ('Jujutsu last published episode', '95479', 'tv', 1, 59, 3, 11),
+                     ('Jujutsu IMDb Hidden Inventory', 'tt12343534', 'tv', 1, 25, 2, 0),
+                     ('One Piece ongoing saga regression', '37854', 'tv', 23, 1180, 12, 24)]
+        if args.case is not None:
+            cases = [cases[args.case]]
         for title, identity, kind, season, episode, source_season, index in cases:
             run = subprocess.run(['java', '-cp', classpath + os.pathsep + str(output), harness + 'Kt',
                                   str(args.bundle.resolve()), 'http://127.0.0.1:' + port, identity, kind, str(season), str(episode)],

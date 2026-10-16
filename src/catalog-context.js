@@ -76,7 +76,7 @@ function cinemetaMeta(raw,season) {
     else if(ch==='}' || ch===']')depth--;
   }
   if(videos<0)return JSON.parse(raw).meta;
-  const selected=[];let offset=0,objectStart=-1;depth=0;quote=false;escaped=false;
+  const selected=[],groups=new Set();let offset=0,objectStart=-1,complete=false;depth=0;quote=false;escaped=false;
   for(let i=videos;i<raw.length;i++) {
     const ch=raw[i];
     if(quote) {if(escaped)escaped=false;else if(ch==='\\')escaped=true;else if(ch==='"')quote=false;continue;}
@@ -86,15 +86,16 @@ function cinemetaMeta(raw,season) {
       depth--;
       if(depth===0 && objectStart>=0) {
         const v=JSON.parse(raw.slice(objectStart,i+1)),number=Number(v.episode),group=Number(v.season);
+        if(Number.isInteger(group) && group>0)groups.add(group);
         if(group>season)break;
         if(Number.isInteger(number) && number>0) {
           if(group>0 && group<season)offset++;
           else if(group===season)selected.push({episode_number:number,name:v.title});
         }
       }
-    } else if(ch===']' && depth===0)break;
+    } else if(ch===']' && depth===0){complete=true;break;}
   }
-  return {...header,catalogEpisodes:selected,absoluteOffset:offset};
+  return {...header,catalogEpisodes:selected,absoluteOffset:offset,singleSeason:complete && groups.size===1 && groups.has(1)};
 }
 async function titleContext(provider,id,type,key = '',season = 1) {
   if (id.startsWith('kitsu:')) {
@@ -117,14 +118,14 @@ async function titleContext(provider,id,type,key = '',season = 1) {
     return {name:meta.name,title:meta.name,aliases:meta.aliases || [],
       genres:meta.genres.map(name => ({name,id:/^animation$/i.test(name)?16:undefined})),
       first_air_date:meta.released || meta.releaseInfo,release_date:meta.released || meta.releaseInfo,
-      catalogEpisodes:meta.catalogEpisodes,absoluteOffset:meta.absoluteOffset};
+      catalogEpisodes:meta.catalogEpisodes,absoluteOffset:meta.absoluteOffset,singleSeason:meta.singleSeason};
   } catch (_error) { /* Isolated fallback for catalog outages or unsupported identities. */ }
   if (id.startsWith('tt')) {
     const r = await provider.http.request(`https://v3-cinemeta.strem.io/meta/${type === 'tv' ? 'series':'movie'}/${id}.json`,{category:'mapping'});
     const meta = cinemetaMeta(r.body,season);
     if (!meta?.name) throw Object.assign(new Error('IMDb catalog metadata unavailable.'),{code:'METADATA_UNAVAILABLE'});
     return {name:meta.name,title:meta.name,aliases:meta.aliases || [],genres:(meta.genres || []).map(name => ({name,id:/^animation$/i.test(name)?16:undefined})),
-      first_air_date:meta.year || meta.releaseInfo,release_date:meta.year || meta.releaseInfo,catalogEpisodes:meta.catalogEpisodes,absoluteOffset:meta.absoluteOffset};
+      first_air_date:meta.year || meta.releaseInfo,release_date:meta.year || meta.releaseInfo,catalogEpisodes:meta.catalogEpisodes,absoluteOffset:meta.absoluteOffset,singleSeason:meta.singleSeason};
   }
   if (key) {
     try { return await api(provider,`/${type}/${id}?append_to_response=translations,alternative_titles`,key); }
@@ -135,7 +136,7 @@ async function titleContext(provider,id,type,key = '',season = 1) {
 }
 async function seasonContext(provider,id,season,key = '',metadata) {
   if (id.startsWith('kitsu:')) return {absolute:true};
-  if (metadata?.catalogEpisodes?.length) return {episodes:metadata.catalogEpisodes,absoluteOffset:metadata.absoluteOffset};
+  if (metadata?.catalogEpisodes?.length) return {episodes:metadata.catalogEpisodes,absoluteOffset:metadata.absoluteOffset,singleSeason:metadata.singleSeason};
   if (id.startsWith('tt')) {
     const episodes = metadata?.catalogEpisodes || [];
     if (!episodes.length) throw Object.assign(new Error('IMDb catalog season unavailable.'),{code:'SEASON_UNAVAILABLE'});

@@ -15,7 +15,8 @@
 | `src/extractors/hls.js`, `mp4.js` | Manifest metadata and bounded MP4 header parsing |
 | `src/extractors/dispatcher.js` | Host routing, independent deadlines, validation and header inheritance |
 | `src/streams.js` | Accurate labels, structured metadata, deduplication and addon header hints |
-| `src/native.js` | Nuvio getStreams/onSettings, source alias/episode mapping and safe diagnostics |
+| `src/native.js` | Nuvio getStreams/onSettings, validated source identity lookup and safe diagnostics |
+| `src/episode-mapping.js` | Catalog/source season translation, saga ranges, canonical prefix counts and exact edition slots |
 | `src/catalog-context.js` | Public Nuvio catalog identity + episodes, isolated TMDB/Cinemeta fallbacks and Kitsu identities |
 | `src/runtime-fetch.js` | Nuvio bridge transport with lazy, bounded binary decoding; standard fetch fallback |
 | `src/timers.js` | Shared short native sleeps; cancelable deadlines without long evaluation drain |
@@ -149,6 +150,35 @@ and safe failure codes. Current Nuvio 0.5.9 injects the TMDB key and its polyfil
 match the pinned 0.5.10 snapshot; lacking that global is supported as a fallback,
 not asserted to be the cause on every device. The UI's repository chips reflect
 returned streams, so their absence alone does not identify an installation error.
+
+## Flattened catalog seasons and lookup speed (1.0.6)
+
+`cinemetaMeta` marks a single regular catalog season only after reaching the actual
+end of the videos array; an oversized/clipped first season cannot establish that
+shape. Specials in season zero are excluded. An explicit absolute anime identity
+also supplies continuous numbering. Ordinary multi-season catalogs stay direct.
+
+For a flattened catalog without declared saga ranges, the mapper walks only the
+ordered regular season/part prefix needed for the requested episode. It reads
+canonical VOSTFR lists, counts numbered regular slots including unavailable
+players, and excludes named specials. Films/OAV/Kai groups never participate.
+Missing seasons, inconsistent labels or an unavailable canonical prefix fail
+safely. Selected-edition lengths never establish offsets. Each edition is matched
+by its actual label and can use a different array position for inserted specials.
+Only the target group's selected editions are fetched. The provider's existing
+version cache reuses canonical target discovery and player data in that invocation.
+
+Declared source ranges still take precedence and eliminate prefix counting when
+they identify the target directly. No title ID, season length, current episode
+limit or Anime-Sama domain is baked into this translation.
+
+The normalized primary title's direct source page is a bounded fast path, accepted
+only after the actual page identity/aliases, requested path and compatible year
+match. Otherwise the existing search/alias workflow runs. This removes one GET
+and sequential stage for matching slugs, while exceptional slugs can incur a
+failed direct probe before search. Native runtimes offer no persistent key-value
+cache, so no cross-selection cache is assumed. Public metadata/player data and
+temporary signed playback URLs retain their existing separate cache behavior.
 
 ## Catalog addon
 

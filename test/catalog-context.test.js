@@ -43,9 +43,32 @@ test('Kitsu anime identities need no TMDB translation or invented episode count'
   const context=await Catalog.seasonContext(provider,'kitsu:12',1,'',metadata);assert.deepEqual(chooseCatalogEpisode(context,62),{number:62,position:61});assert.equal(calls.length,1);
 });
 test('source alias matching resolves translated titles while excluding spinoffs',async()=>{
-  const provider={search:async()=>({items:[{path:'/catalogue/junior/',title:'Junior High'},{path:'/catalogue/titan/',title:'Shingeki no Kyojin'}]}),details:async path=>path.includes('junior')?{path,title:'Junior High',aliases:['Attack on Titan Junior High'],year:2015}:{path,title:'Shingeki no Kyojin',aliases:['Attack on Titan'],year:2013}};
+  const provider={search:async()=>({items:[{path:'/catalogue/junior/',title:'Junior High'},{path:'/catalogue/titan/',title:'Shingeki no Kyojin'}]}),details:async path=>{
+    if (!['/catalogue/junior/','/catalogue/titan/'].includes(path)) throw Object.assign(new Error('Not found'),{status:404});
+    return path.includes('junior')?{path,title:'Junior High',aliases:['Attack on Titan Junior High'],year:2015}:{path,title:'Shingeki no Kyojin',aliases:['Attack on Titan'],year:2013};
+  }};
   const selected=await sourceTitle(provider,{name:'Attack on Titan',first_air_date:'2013-04-07'},'tv');assert.equal(selected.path,'/catalogue/titan/');
   await assert.rejects(sourceTitle(provider,{name:'Attack on Titan',first_air_date:'2023-04-07'},'tv'),{code:'NO_EXACT_SOURCE_ALIAS'});
+});
+test('validated direct title lookup saves a search GET and falls back on identity/year/path mismatches',async()=>{
+  let searches=0;
+  const correct={path:'/catalogue/jujutsu-kaisen/',title:'Jujutsu Kaisen',year:2020};
+  const provider={details:async()=>correct,search:async()=>{searches++;return {items:[{path:correct.path,title:correct.title}]};}};
+  assert.equal(await sourceTitle(provider,{name:'JUJUTSU KAISEN',first_air_date:'2020-10-03'},'tv'),correct);
+  assert.equal(searches,0);
+  for(const wrong of [{...correct,title:'Jujutsu Kaisen 0'},{...correct,year:2000},{...correct,path:'/catalogue/other/'}]) {
+    let reads=0;searches=0;
+    provider.details=async()=>++reads===1?wrong:correct;
+    assert.equal(await sourceTitle(provider,{name:'Jujutsu Kaisen',first_air_date:'2020-10-03'},'tv'),correct);
+    assert.equal(searches,1);
+  }
+});
+test('only a complete single-season catalog authorizes flattening; specials and clipped tails cannot imply it',()=>{
+  const raw=videos=>JSON.stringify({meta:{name:'Jujutsu Kaisen',genres:['Animation'],videos}});
+  const one=[{season:0,episode:1},{season:1,episode:1},{season:1,episode:2}];
+  assert.equal(Catalog.cinemetaMeta(raw(one),1).singleSeason,true);
+  assert.equal(Catalog.cinemetaMeta(raw([...one,{season:2,episode:1}]),1).singleSeason,false);
+  assert.equal(Catalog.cinemetaMeta(raw(one).slice(0,-3),1).singleSeason,false);
 });
 test('declared source saga ranges map seasonal or continuous catalog episode numbers',async()=>{
   const group1={path:'/catalogue/one-piece/saison1/',name:'Saga 1 [Episode 1 à 61]'};
